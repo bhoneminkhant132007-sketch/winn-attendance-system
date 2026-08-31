@@ -4,16 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ဝင်း အဆင့်မြင့်ဧည့်ရိပ်သာ - ဝန်ထမ်းစီမံခန့်ခွဲမှုစနစ်</title>
-    <!-- Face-API.js for Face Recognition -->
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     
     <style>
         @font-face { font-family: 'Pyidaungsu'; src: local('Pyidaungsu'); }
-        body { 
-            font-family: 'Pyidaungsu', 'Times New Roman', serif; margin: 0; padding: 0; 
-            background: linear-gradient(135deg, #0d1b2a, #1b263b, #415a77); background-size: cover; 
-            color: #ffffff; min-height: 100vh; 
-        }
+        body { font-family: 'Pyidaungsu', 'Times New Roman', serif; margin: 0; padding: 0; background: linear-gradient(135deg, #0d1b2a, #1b263b, #415a77); background-size: cover; color: #ffffff; min-height: 100vh; }
         header { background-color: rgba(0, 0, 77, 0.9); color: white; padding: 15px 30px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         header h1 { margin: 0; font-size: 26px; color: #D4AF37; }
         header h2 { margin: 5px 0 0 0; font-size: 16px; color: #e0e0e0; }
@@ -21,11 +16,7 @@
         nav a { color: #00004d; text-decoration: none; padding: 10px 15px; margin: 5px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; }
         nav a:hover, nav a.active { background-color: #00004d; color: #D4AF37; }
         
-        .container { 
-            max-width: 1000px; margin: 40px auto; padding: 40px; 
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); color: #fff; 
-        }
+        .container { max-width: 1000px; margin: 40px auto; padding: 40px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); color: #fff; }
         .section { display: none; }
         .section.active { display: block; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -72,11 +63,16 @@
         .face-id-badge { background: #28a745; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
         .img-preview { max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; }
         
-        /* Camera Modal Styles */
         .camera-container { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
-        #camera-video { width: 100%; border-radius: 10px; background: #000; transform: scaleX(-1); /* Mirror effect */ }
+        #camera-video { width: 100%; border-radius: 10px; background: #000; transform: scaleX(-1); }
         #camera-canvas { position: absolute; top: 0; left: 0; z-index: 10; }
         .camera-msg { color: #D4AF37; margin-top: 10px; font-weight: bold; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+        .cal-header { font-weight: bold; padding: 10px; background: #00004d; color: white; border-radius: 5px;}
+        .cal-day { padding: 15px 5px; background: rgba(255,255,255,0.2); border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); }
+        .cal-present { background: rgba(40, 167, 69, 0.6); }
+        .cal-absent { background: rgba(220, 53, 69, 0.6); }
     </style>
 </head>
 <body>
@@ -99,7 +95,6 @@
         <a onclick="openAdminModal('employee-data')" id="nav-employee-data">ဝန်ထမ်းအချက်အလက်စနစ်</a>
     </nav>
 
-    <!-- Camera Modal for Face ID -->
     <div id="camera-modal" class="modal-overlay">
         <div class="modal-content" style="width: auto; min-width: 320px;">
             <h3 style="margin-top:0;" id="camera-title">Face ID စစ်ဆေးခြင်း</h3>
@@ -176,7 +171,23 @@
         </div>
 
         <div id="attendance" class="section">
-            <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန် (Under Construction)</h2>
+            <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန်</h2>
+            <div class="form-group"><label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label><select class="emp-dropdown" id="att-emp"></select></div>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+                <p><strong>သြဂုတ်လ ၂၀၂၆</strong> (စမ်းသပ်ပြသမှု)</p>
+                <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 14px;">
+                    <span style="color: #28a745;">■ အလုပ်တက်ရက်</span><span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
+                </div>
+                <div class="calendar-grid">
+                    <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
+                    <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day">1</div><div class="cal-day">2</div>
+                    <div class="cal-day cal-present">3</div><div class="cal-day cal-present">4</div><div class="cal-day cal-present">5</div><div class="cal-day cal-present">6</div><div class="cal-day cal-present">7</div><div class="cal-day cal-present">8</div><div class="cal-day">9</div>
+                    <div class="cal-day cal-present">10</div><div class="cal-day cal-present">11</div><div class="cal-day cal-absent">12</div><div class="cal-day cal-present">13</div><div class="cal-day cal-present">14</div><div class="cal-day cal-present">15</div><div class="cal-day">16</div>
+                    <div class="cal-day cal-present">17</div><div class="cal-day cal-present">18</div><div class="cal-day cal-present">19</div><div class="cal-day cal-present">20</div><div class="cal-day cal-present">21</div><div class="cal-day cal-present">22</div><div class="cal-day">23</div>
+                    <div class="cal-day cal-present">24</div><div class="cal-day cal-present">25</div><div class="cal-day cal-present">26</div><div class="cal-day cal-present">27</div><div class="cal-day cal-present">28</div><div class="cal-day cal-present">29</div><div class="cal-day">30</div>
+                    <div class="cal-day cal-present">31</div>
+                </div>
+            </div>
         </div>
         
         <div id="register" class="section">
@@ -220,7 +231,7 @@
                 <p id="face-status-text" style="color:#ffcccc; font-weight:bold;">(Face ID မမှတ်ရသေးပါ)</p>
                 <button class="btn btn-blue" id="btn-open-reg-cam" style="margin-bottom:10px;" onclick="openCameraForRegistration()">၁။ မျက်နှာ Face ID မှတ်သားမည်</button>
             </div>
-            <button class="btn btn-green" id="reg-submit-btn" style="margin-top:20px;" disabled onclick="registerEmployee()">၂။ အချက်အလက်များ စာရင်းသွင်းမည်</button>
+            <button class="btn btn-green" id="reg-submit-btn" style="margin-top:20px;" onclick="registerEmployee()">၂။ အချက်အလက်များ စာရင်းသွင်းမည်</button>
         </div>
 
         <div id="employee-data" class="section">
@@ -254,11 +265,10 @@
         let registeredEmployees = [];
         let targetAdminSection = "";
         
-        // Face ID Variables
         let aiModelsLoaded = false;
         let videoStream = null;
         let detectionInterval = null;
-        let temporaryFaceDescriptor = null; // Stored during registration
+        let temporaryFaceDescriptor = null;
         let verificationTargetDescriptor = null;
         let currentAction = "";
 
@@ -267,7 +277,7 @@
         }
 
         window.onload = async function() { 
-            loadAIModels(); // Load Face API models
+            loadAIModels(); 
             if(navigator.onLine) {
                 await fetchEmployees(); await fetchAttendance();
                 syncOfflineData(); 
@@ -278,10 +288,8 @@
             setInterval(updateTime, 1000);
         };
 
-        // --- AI FACE API LOGIC ---
         async function loadAIModels() {
             try {
-                // Loading models from a reliable public CDN
                 const modelUrl = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
                 await faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl);
                 await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
@@ -324,7 +332,6 @@
             document.getElementById('camera-msg').innerText = "";
         }
 
-        // 1. Registration Phase (Capture Face)
         function openCameraForRegistration() {
             temporaryFaceDescriptor = null;
             openCamera('register');
@@ -341,23 +348,23 @@
                 document.getElementById('camera-msg').innerText = "အောင်မြင်ပါသည်။ မျက်နှာမှတ်သားပြီးပါပြီ။";
                 document.getElementById('face-status-text').innerText = "(Face ID မှတ်သားပြီးပါပြီ ✓)";
                 document.getElementById('face-status-text').style.color = "#28a745";
-                document.getElementById('reg-submit-btn').disabled = false; // Enable submit
                 setTimeout(closeCamera, 1500);
             } else {
                 document.getElementById('camera-msg').innerText = "မျက်နှာကို သေချာမတွေ့ရပါ။ အလင်းရောင်နှင့် မျက်နှာအနေအထားကို ပြင်ပါ။";
             }
         }
 
-        // 2. Verification Phase (Check In/Out)
         async function startVerification(action) {
             currentAction = action;
             let empName = (action === 'Check In') ? document.getElementById('ci-emp').value : document.getElementById('co-emp').value;
             if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
 
-            // Find employee descriptor
             let emp = registeredEmployees.find(e => e.name === empName);
             if(!emp || !emp.faceDescriptor) {
-                alert("ဤဝန်ထမ်းသည် Face ID မှတ်သားထားခြင်း မရှိပါ။ Admin ထံ ဆက်သွယ်ပါ။"); return;
+                alert("ဤဝန်ထမ်းသည် Face ID မှတ်သားထားခြင်း မရှိပါ။ Admin ထံ ဆက်သွယ်ပါ။ (သို့မဟုတ် Camera ခလုတ်မနှိပ်ဘဲ Check In/Out တိုက်ရိုက်လုပ်နိုင်ပါသည်)"); 
+                document.getElementById(action === 'Check In' ? 'btn-ci-submit' : 'btn-co-submit').style.display = 'inline-block';
+                document.getElementById(action === 'Check In' ? 'btn-ci-submit' : 'btn-co-submit').disabled = false;
+                return;
             }
             verificationTargetDescriptor = new Float32Array(JSON.parse(emp.faceDescriptor));
 
@@ -370,13 +377,13 @@
                     const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
                     if(detection) {
                         const distance = faceapi.euclideanDistance(detection.descriptor, verificationTargetDescriptor);
-                        if(distance < 0.45) { // Threshold for matching
+                        if(distance < 0.45) { 
                             clearInterval(detectionInterval);
                             document.getElementById('camera-msg').innerText = "Face ID မှန်ကန်ပါသည်။";
                             document.getElementById('camera-msg').style.color = "#28a745";
                             setTimeout(() => {
                                 closeCamera();
-                                submitData(currentAction); // Auto submit after success
+                                submitData(currentAction); 
                             }, 1500);
                         } else {
                             document.getElementById('camera-msg').innerText = "မျက်နှာ တိုက်စစ်၍ မရပါ။ (Match Failed)";
@@ -386,7 +393,6 @@
                 }, 1000);
             });
         }
-        // --- END AI FACE API LOGIC ---
 
         async function fetchEmployees() {
             try {
@@ -401,13 +407,15 @@
                         parents: { name: emp.parent_name || "-", job: emp.parent_job || "-", address: emp.parent_address || "-", phone: emp.parent_phone || "-" },
                         spouse: { name: emp.spouse_name || "-", job: emp.spouse_job || "-", address: emp.spouse_address || "-", phone: emp.spouse_phone || "-" },
                         images: { front: emp.id_front_url || "", back: emp.id_back_url || "" },
-                        faceDescriptor: emp.face_descriptor || null, // Get Face data
+                        faceDescriptor: emp.face_descriptor || null, 
                         hasFaceID: emp.face_descriptor ? true : false
                     }));
                     updateDropdowns();
                     localStorage.setItem('cached_employees', JSON.stringify(registeredEmployees));
+                } else if(data.error) {
+                    console.error("Database Fetch Error:", data.error);
                 }
-            } catch(e) { console.log("Offline mode"); }
+            } catch(e) { console.log("Offline mode - network error"); }
         }
 
         async function fetchAttendance() {
@@ -418,7 +426,7 @@
                     attendanceLogs = data.map(log => ({ name: log.emp_name, type: log.log_type, date: log.log_date, time: log.log_time }));
                     localStorage.setItem('cached_attendance', JSON.stringify(attendanceLogs));
                 }
-            } catch(e) { console.log("Offline mode"); }
+            } catch(e) { console.log("Offline mode - network error"); }
         }
 
         function loadOfflineData() {
@@ -459,7 +467,10 @@
             let position = document.getElementById('reg-position').value;
             
             if(!name || !position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
-            if(!temporaryFaceDescriptor) { alert("Face ID မှတ်သားခြင်း မရှိသေးပါ။ (အဆင့် ၁ ကိုလုပ်ပါ)"); return; }
+            if(!temporaryFaceDescriptor) { 
+                let conf = confirm("Face ID မျက်နှာမှတ်သားခြင်း မလုပ်ရသေးပါ။ Face ID မပါဘဲ ဆက်လက်စာရင်းသွင်းမည်လား?");
+                if(!conf) return; 
+            }
             
             let btn = document.getElementById("reg-submit-btn");
             btn.innerText = "အချက်အလက်များ သိမ်းဆည်းနေပါသည်..."; btn.disabled = true;
@@ -469,8 +480,7 @@
             let frontUrl = await uploadImage(frontFile, 'front');
             let backUrl = await uploadImage(backFile, 'back');
 
-            // Convert Float32Array to Array for JSON Storage
-            let faceDescArray = Array.from(temporaryFaceDescriptor);
+            let faceDescArray = temporaryFaceDescriptor ? Array.from(temporaryFaceDescriptor) : null;
 
             let payload = {
                 emp_name: name, other_name: document.getElementById('reg-othername').value,
@@ -483,7 +493,7 @@
                 spouse_name: document.getElementById('reg-s-name').value, spouse_job: document.getElementById('reg-s-job').value,
                 spouse_address: document.getElementById('reg-s-address').value, spouse_phone: document.getElementById('reg-s-phone').value,
                 id_front_url: frontUrl, id_back_url: backUrl,
-                face_descriptor: JSON.stringify(faceDescArray) // Saved to DB
+                face_descriptor: faceDescArray ? JSON.stringify(faceDescArray) : null 
             };
 
             try {
@@ -497,9 +507,9 @@
                     temporaryFaceDescriptor = null;
                     await fetchEmployees(); showSection('dashboard');
                 } else { alert("Database Error: " + data.error.message); }
-            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
+            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။ Database သို့ မရောက်ပါ။"); }
 
-            btn.innerText = "၂။ အချက်အလက်များ စာရင်းသွင်းမည်";
+            btn.innerText = "၂။ အချက်အလက်များ စာရင်းသွင်းမည်"; btn.disabled = false;
         }
 
         async function submitData(action) {
@@ -507,6 +517,7 @@
             let dateVal = (action === 'Check In') ? document.getElementById('ci-date').value : document.getElementById('co-date').value;
             let timeVal = (action === 'Check In') ? document.getElementById('ci-time').value : document.getElementById('co-time').value;
 
+            if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
             let payload = { emp_name: empName, log_type: action, log_date: dateVal, log_time: timeVal };
             
             if(navigator.onLine) {
@@ -514,7 +525,7 @@
                     let res = await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                     let data = await res.json();
                     if(!data.error) {
-                        alert(`Face ID မှန်ကန်ပါသည်။ ${empName} ၏ ${action} ကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
+                        alert(`${empName} ၏ ${action} ကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
                         await fetchAttendance(); 
                     }
                 } catch(e) { saveOfflineAttendance(payload, empName, action); }
@@ -529,7 +540,7 @@
             let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
             offlineLogs.push(payload);
             localStorage.setItem('offline_attendance', JSON.stringify(offlineLogs));
-            alert(`Face ID မှန်ကန်ပါသည်။ [Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။`);
+            alert(`[Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။`);
         }
 
         function showSection(id) {
