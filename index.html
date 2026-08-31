@@ -72,6 +72,7 @@
         .profile-section-title { color: #D4AF37; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 15px; margin-bottom: 10px; }
         .profile-data strong { display: inline-block; width: 150px; color: #555; }
         .face-id-badge { background: #28a745; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+        .img-preview { max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -210,8 +211,17 @@
                 <div class="form-group"><input type="text" id="reg-s-address" placeholder="ဇနီး/ခင်ပွန်းနေရပ်လိပ်စာ"></div>
                 <div class="form-group"><input type="text" id="reg-s-phone" placeholder="ဇနီး/ခင်ပွန်းဖုန်းနံပါတ်"></div>
             </div>
+
+            <h3 class="subtitle">မှတ်ပုံတင်အချက်အလက် နှင့် Face ID</h3>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>မှတ်ပုံတင် ဓာတ်ပုံ (ရှေ့ / နောက်)</label>
+                <div class="grid-2col">
+                    <input type="file" id="reg-id-front" accept="image/*">
+                    <input type="file" id="reg-id-back" accept="image/*">
+                </div>
+            </div>
             
-            <button class="btn btn-blue" style="margin-top:20px;" onclick="registerEmployee()">Face ID မှတ်သားရန် & စာရင်းသွင်းမည်</button>
+            <button class="btn btn-blue" id="reg-submit-btn" style="margin-top:20px;" onclick="registerEmployee()">Face ID မှတ်သားရန် & စာရင်းသွင်းမည်</button>
         </div>
 
         <div id="employee-data" class="section">
@@ -241,6 +251,7 @@
 
     <script>
         const SUPABASE_URL = "https://vveqtipcnrzbpmjwzbpm.supabase.co/rest/v1";
+        const STORAGE_URL = "https://vveqtipcnrzbpmjwzbpm.supabase.co/storage/v1";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2ZXF0aXBjbnJ6YnBtand6YnBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTUxODAsImV4cCI6MjEwMTY3MTE4MH0.ls0NUKwNWnTbqqTfm6jOZdoW1sszaCtdY34vwJpiyeA";
         const fetchHeaders = {
             "apikey": SUPABASE_KEY,
@@ -280,6 +291,7 @@
                         address: emp.address || "-",
                         parents: { name: emp.parent_name || "-", job: emp.parent_job || "-", address: emp.parent_address || "-", phone: emp.parent_phone || "-" },
                         spouse: { name: emp.spouse_name || "-", job: emp.spouse_job || "-", address: emp.spouse_address || "-", phone: emp.spouse_phone || "-" },
+                        images: { front: emp.id_front_url || "", back: emp.id_back_url || "" },
                         hasFaceID: true
                     }));
                     updateDropdowns();
@@ -297,9 +309,52 @@
             } catch(e) { console.error("Error fetching attendance:", e); }
         }
 
+        async function uploadImage(file, prefix) {
+            if (!file) return "";
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${prefix}_${Date.now()}.${fileExt}`;
+            
+            try {
+                let res = await fetch(`${STORAGE_URL}/object/id_cards/${fileName}`, {
+                    method: 'POST',
+                    headers: {
+                        "apikey": SUPABASE_KEY,
+                        "Authorization": "Bearer " + SUPABASE_KEY,
+                        "Content-Type": file.type
+                    },
+                    body: file
+                });
+                
+                if (res.ok) {
+                    return `${STORAGE_URL}/object/public/id_cards/${fileName}`;
+                } else {
+                    console.error("Upload error");
+                    return "";
+                }
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+
         async function registerEmployee() {
+            let name = document.getElementById('reg-name').value;
+            let position = document.getElementById('reg-position').value;
+            
+            if(!name || !position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
+            
+            let btn = document.getElementById("reg-submit-btn");
+            btn.innerText = "ဓာတ်ပုံများ သိမ်းဆည်းနေပါသည်...";
+            btn.disabled = true;
+
+            let frontFile = document.getElementById('reg-id-front').files[0];
+            let backFile = document.getElementById('reg-id-back').files[0];
+            
+            let frontUrl = await uploadImage(frontFile, 'front');
+            let backUrl = await uploadImage(backFile, 'back');
+
             let payload = {
-                emp_name: document.getElementById('reg-name').value,
+                emp_name: name,
                 other_name: document.getElementById('reg-othername').value,
                 age: document.getElementById('reg-age').value,
                 dob: document.getElementById('reg-dob').value,
@@ -307,7 +362,7 @@
                 religion: document.getElementById('reg-religion').value,
                 nrc: document.getElementById('reg-nrc').value,
                 education: document.getElementById('reg-edu').value,
-                position: document.getElementById('reg-position').value,
+                position: position,
                 phone: document.getElementById('reg-phone').value,
                 address: document.getElementById('reg-address').value,
                 parent_name: document.getElementById('reg-p-name').value,
@@ -317,21 +372,24 @@
                 spouse_name: document.getElementById('reg-s-name').value,
                 spouse_job: document.getElementById('reg-s-job').value,
                 spouse_address: document.getElementById('reg-s-address').value,
-                spouse_phone: document.getElementById('reg-s-phone').value
+                spouse_phone: document.getElementById('reg-s-phone').value,
+                id_front_url: frontUrl,
+                id_back_url: backUrl
             };
 
-            if(!payload.emp_name || !payload.position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
-            
             try {
                 let res = await fetch(`${SUPABASE_URL}/employees`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                 let data = await res.json();
                 if(!data.error) {
-                    alert(`ဝန်ထမ်းအမည် ${payload.emp_name} ကို Database သို့ အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
+                    alert(`ဝန်ထမ်းအမည် ${name} ကို Database သို့ အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
                     document.querySelectorAll('#register input').forEach(input => input.value = '');
                     await fetchEmployees(); 
                     showSection('dashboard');
                 } else { alert("Database Error: " + data.error.message); }
             } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
+
+            btn.innerText = "Face ID မှတ်သားရန် & စာရင်းသွင်းမည်";
+            btn.disabled = false;
         }
 
         async function submitData(action) {
@@ -425,6 +483,10 @@
         function viewProfile(index) {
             let emp = registeredEmployees[index];
             let faceIdStatus = emp.hasFaceID ? '<span class="face-id-badge">✓ Registered</span>' : '<span style="color:red;">Not Registered</span>';
+            
+            let frontImg = emp.images.front ? `<img src="${emp.images.front}" class="img-preview" alt="Front ID">` : '<span>ဓာတ်ပုံမထည့်ထားပါ</span>';
+            let backImg = emp.images.back ? `<img src="${emp.images.back}" class="img-preview" alt="Back ID">` : '<span>ဓာတ်ပုံမထည့်ထားပါ</span>';
+
             let html = `
                 <div class="profile-data">
                     <h3 class="profile-section-title">ကိုယ်ရေးအချက်အလက်</h3>
@@ -445,6 +507,20 @@
                     <div class="profile-grid">
                         <div><strong>အမည်:</strong> ${emp.spouse.name}</div><div><strong>အလုပ်အကိုင်:</strong> ${emp.spouse.job}</div>
                         <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.spouse.phone}</div><div style="grid-column: span 2;"><strong>နေရပ်လိပ်စာ:</strong> ${emp.spouse.address}</div>
+                    </div>
+                    <h3 class="profile-section-title">လုံခြုံရေးနှင့် မှတ်ပုံတင်</h3>
+                    <div class="profile-grid" style="grid-template-columns: 1fr;">
+                        <div><strong>Face ID:</strong> ${faceIdStatus}</div>
+                    </div>
+                    <div class="grid-2col" style="margin-top:10px; text-align:center;">
+                        <div>
+                            <p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (ရှေ့)</strong></p>
+                            ${frontImg}
+                        </div>
+                        <div>
+                            <p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (နောက်)</strong></p>
+                            ${backImg}
+                        </div>
                     </div>
                 </div>
             `;
