@@ -95,6 +95,7 @@
         <a onclick="openAdminModal('employee-data')" id="nav-employee-data">ဝန်ထမ်းအချက်အလက်စနစ်</a>
     </nav>
 
+    <!-- Camera Modal -->
     <div id="camera-modal" class="modal-overlay">
         <div class="modal-content" style="width: auto; min-width: 320px;">
             <h3 style="margin-top:0;" id="camera-title">Face ID စစ်ဆေးခြင်း</h3>
@@ -110,6 +111,7 @@
         </div>
     </div>
 
+    <!-- Password Modal -->
     <div id="password-modal" class="modal-overlay">
         <div class="modal-content">
             <h3 style="margin-top:0;">Admin စနစ်သို့ဝင်ရောက်ရန်</h3>
@@ -121,6 +123,7 @@
         </div>
     </div>
 
+    <!-- Profile Modal -->
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-content profile-content">
             <h2 style="margin-top:0; text-align:center; color:#00004d;">ဝန်ထမ်း ကိုယ်ရေးအချက်အလက် အပြည့်အစုံ</h2>
@@ -132,6 +135,7 @@
     </div>
 
     <div class="container">
+        <!-- Dashboard -->
         <div id="dashboard" class="section active">
             <div class="dashboard-welcome">
                 <div class="dash-mm">ကြိုဆိုပါသည်</div>
@@ -141,6 +145,7 @@
             </div>
         </div>
 
+        <!-- Check In -->
         <div id="checkin" class="section">
             <h2 class="title">အလုပ်ဝင်ချိန်တင်ရန်</h2>
             <div class="form-group"><label>ဝန်ထမ်းအမည်</label><select class="emp-dropdown" id="ci-emp"></select></div>
@@ -152,6 +157,7 @@
             <button class="btn btn-green" id="btn-ci-submit" disabled onclick="submitData('Check In')" style="display:none;">Check In</button>
         </div>
 
+        <!-- Check Out -->
         <div id="checkout" class="section">
             <h2 class="title">အလုပ်ပြန်ချိန်တင်ရန်</h2>
             <div class="form-group"><label>ဝန်ထမ်းအမည်</label><select class="emp-dropdown" id="co-emp"></select></div>
@@ -163,13 +169,19 @@
             <button class="btn btn-red" id="btn-co-submit" disabled onclick="submitData('Check Out')" style="display:none;">Check Out</button>
         </div>
 
+        <!-- Leave Form -->
         <div id="leave" class="section">
             <h2 class="title">ခွင့်တင်ရန်</h2>
             <div class="form-group"><label>ဝန်ထမ်းအမည်</label><select class="emp-dropdown" id="leave-emp"></select></div>
+            <div class="form-group"><label>ခွင့်ယူမည့် ရက်စွဲ</label><input type="date" id="leave-date"></div>
             <div class="form-group"><label>အကြောင်းအရာ</label><textarea id="leave-reason" rows="5" placeholder="ခွင့်ယူရသည့် အကြောင်းရင်းကို အသေးစိတ်ရေးသားပါ..."></textarea></div>
-            <div class="flex-btns"><button class="btn btn-green" onclick="submitLeave()">ခွင့်တင်ရန်</button><button class="btn btn-red" onclick="showSection('dashboard')">ပယ်ဖျက်ရန်</button></div>
+            <div class="flex-btns">
+                <button class="btn btn-green" onclick="submitLeave()">ခွင့်တင်ရန်</button>
+                <button class="btn btn-red" onclick="showSection('dashboard')">ပယ်ဖျက်ရန်</button>
+            </div>
         </div>
 
+        <!-- Attendance Calendar -->
         <div id="attendance" class="section">
             <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန်</h2>
             <div class="form-group">
@@ -181,12 +193,11 @@
                 <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 14px;">
                     <span style="color: #28a745;">■ အလုပ်တက်ရက်</span><span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
                 </div>
-                <div class="calendar-grid" id="dynamic-calendar">
-                    <!-- Dynamic Calendar will be loaded here -->
-                </div>
+                <div class="calendar-grid" id="dynamic-calendar"></div>
             </div>
         </div>
         
+        <!-- Registration Form -->
         <div id="register" class="section">
             <h2 class="title">ဝန်ထမ်းအသစ်စာရင်းသွင်းရန်</h2>
             <div class="grid-2col">
@@ -241,8 +252,19 @@
             </div>
         </div>
 
+        <!-- Admin Panel for Leave and Attendance -->
         <div id="admin-panel" class="section">
-            <h2 class="title">စီမံခန့်ခွဲမှု (Admin Only) - နေ့စဥ်မှတ်တမ်းများ</h2>
+            <h2 class="title">စီမံခန့်ခွဲမှု (Admin Only)</h2>
+            
+            <h3 class="subtitle">ခွင့်တောင်းခံလွှာများ</h3>
+            <div style="overflow-x: auto; margin-bottom: 30px;">
+                <table>
+                    <thead><tr><th>ဝန်ထမ်းအမည်</th><th>ရက်စွဲ</th><th>အကြောင်းအရာ</th><th>အခြေအနေ</th><th>လုပ်ဆောင်ချက်</th></tr></thead>
+                    <tbody id="admin-leave-body"></tbody>
+                </table>
+            </div>
+
+            <h3 class="subtitle">နေ့စဥ် အလုပ်ဝင်/ပြန် မှတ်တမ်းများ</h3>
             <div style="overflow-x: auto;">
                 <table>
                     <thead><tr><th>ဝန်ထမ်းအမည်</th><th>အမျိုးအစား</th><th>ရက်စွဲ</th><th>အချိန်</th></tr></thead>
@@ -260,6 +282,7 @@
 
         let attendanceLogs = [];
         let registeredEmployees = [];
+        let leaveRequests = [];
         let targetAdminSection = "";
         
         let aiModelsLoaded = false;
@@ -276,7 +299,9 @@
         window.onload = async function() { 
             loadAIModels(); 
             if(navigator.onLine) {
-                await fetchEmployees(); await fetchAttendance();
+                await fetchEmployees(); 
+                await fetchAttendance();
+                await fetchLeaveRequests();
                 syncOfflineData(); 
             } else {
                 document.getElementById('loading-status').innerText = "(Offline ဖြစ်နေပါသည်။ Data များကို ယာယီသိမ်းဆည်းထားပါမည်)";
@@ -284,6 +309,14 @@
             }
             setInterval(updateTime, 1000);
         };
+
+        window.addEventListener('online', async () => {
+            document.getElementById('loading-status').innerText = "(အင်တာနက် ပြန်လည်ရရှိပါပြီ။ Database သို့ ချိတ်ဆက်နေပါသည်...)";
+            await fetchEmployees();
+            await fetchAttendance();
+            await fetchLeaveRequests();
+            syncOfflineData();
+        });
 
         async function loadAIModels() {
             try {
@@ -295,7 +328,6 @@
                 if(navigator.onLine) document.getElementById('loading-status').innerText = "(Database နှင့် AI Models အသင့်ဖြစ်ပါပြီ)";
             } catch(e) {
                 document.getElementById('loading-status').innerText = "(AI Model Load လုပ်ရာတွင် Error ဖြစ်နေပါသည်။ အင်တာနက်စစ်ဆေးပါ။)";
-                console.error("AI Model error", e);
             }
         }
 
@@ -316,10 +348,7 @@
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: {} });
                 video.srcObject = videoStream;
-            } catch(e) { 
-                document.getElementById('camera-msg').innerText = "ကင်မရာ အသုံးပြုခွင့် မရရှိပါ။"; 
-                console.error(e);
-            }
+            } catch(e) { document.getElementById('camera-msg').innerText = "ကင်မရာ အသုံးပြုခွင့် မရရှိပါ။"; }
         }
 
         function closeCamera() {
@@ -337,18 +366,14 @@
         async function captureFaceForRegistration() {
             const video = document.getElementById('camera-video');
             document.getElementById('camera-msg').innerText = "မျက်နှာကို ဖတ်နေပါသည်... ငြိမ်ငြိမ်နေပေးပါ။";
-            
             const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
-            
             if(detection) {
                 temporaryFaceDescriptor = detection.descriptor;
                 document.getElementById('camera-msg').innerText = "အောင်မြင်ပါသည်။ မျက်နှာမှတ်သားပြီးပါပြီ။";
                 document.getElementById('face-status-text').innerText = "(Face ID မှတ်သားပြီးပါပြီ ✓)";
                 document.getElementById('face-status-text').style.color = "#28a745";
                 setTimeout(closeCamera, 1500);
-            } else {
-                document.getElementById('camera-msg').innerText = "မျက်နှာကို သေချာမတွေ့ရပါ။ အလင်းရောင်နှင့် မျက်နှာအနေအထားကို ပြင်ပါ။";
-            }
+            } else { document.getElementById('camera-msg').innerText = "မျက်နှာကို သေချာမတွေ့ရပါ။ ပြန်လည်ကြိုးစားပါ။"; }
         }
 
         async function startVerification(action) {
@@ -378,10 +403,7 @@
                             clearInterval(detectionInterval);
                             document.getElementById('camera-msg').innerText = "Face ID မှန်ကန်ပါသည်။";
                             document.getElementById('camera-msg').style.color = "#28a745";
-                            setTimeout(() => {
-                                closeCamera();
-                                submitData(currentAction); 
-                            }, 1500);
+                            setTimeout(() => { closeCamera(); submitData(currentAction); }, 1500);
                         } else {
                             document.getElementById('camera-msg').innerText = "မျက်နှာ တိုက်စစ်၍ မရပါ။ (Match Failed)";
                             document.getElementById('camera-msg').style.color = "#dc3545";
@@ -397,22 +419,16 @@
                 let data = await res.json();
                 if(!data.error && Array.isArray(data)) {
                     registeredEmployees = data.map(emp => ({
-                        id: emp.id.toString().padStart(2, '0'),
-                        name: emp.emp_name, othername: emp.other_name || "-", age: emp.age || "-", dob: emp.dob || "-",
-                        birthplace: emp.birthplace || "-", religion: emp.religion || "-", nrc: emp.nrc || "-", edu: emp.education || "-",
-                        position: emp.position, phone: emp.phone || "-", address: emp.address || "-",
+                        id: emp.id.toString().padStart(2, '0'), name: emp.emp_name, othername: emp.other_name || "-", age: emp.age || "-", dob: emp.dob || "-",
+                        birthplace: emp.birthplace || "-", religion: emp.religion || "-", nrc: emp.nrc || "-", edu: emp.education || "-", position: emp.position, phone: emp.phone || "-", address: emp.address || "-",
                         parents: { name: emp.parent_name || "-", job: emp.parent_job || "-", address: emp.parent_address || "-", phone: emp.parent_phone || "-" },
                         spouse: { name: emp.spouse_name || "-", job: emp.spouse_job || "-", address: emp.spouse_address || "-", phone: emp.spouse_phone || "-" },
                         images: { front: emp.id_front_url || "", back: emp.id_back_url || "" },
-                        faceDescriptor: emp.face_descriptor || null, 
-                        hasFaceID: emp.face_descriptor ? true : false
+                        faceDescriptor: emp.face_descriptor || null, hasFaceID: emp.face_descriptor ? true : false
                     }));
-                    updateDropdowns();
-                    localStorage.setItem('cached_employees', JSON.stringify(registeredEmployees));
-                } else if(data.error) {
-                    console.error("Database Fetch Error:", data.error);
+                    updateDropdowns(); localStorage.setItem('cached_employees', JSON.stringify(registeredEmployees));
                 }
-            } catch(e) { console.log("Offline mode - network error"); }
+            } catch(e) { console.log("Offline mode - employees"); }
         }
 
         async function fetchAttendance() {
@@ -423,14 +439,20 @@
                     attendanceLogs = data.map(log => ({ name: log.emp_name, type: log.log_type, date: log.log_date, time: log.log_time }));
                     localStorage.setItem('cached_attendance', JSON.stringify(attendanceLogs));
                 }
-            } catch(e) { console.log("Offline mode - network error"); }
+            } catch(e) { console.log("Offline mode - attendance"); }
+        }
+
+        async function fetchLeaveRequests() {
+            try {
+                let res = await fetch(`${SUPABASE_URL}/leave_requests?select=*&order=created_at.desc`, { headers: fetchHeaders });
+                let data = await res.json();
+                if(!data.error && Array.isArray(data)) { leaveRequests = data; }
+            } catch(e) { console.log("Offline mode - leave reqs"); }
         }
 
         function loadOfflineData() {
-            let cachedEmp = localStorage.getItem('cached_employees');
-            if(cachedEmp) { registeredEmployees = JSON.parse(cachedEmp); updateDropdowns(); }
-            let cachedAtt = localStorage.getItem('cached_attendance');
-            if(cachedAtt) { attendanceLogs = JSON.parse(cachedAtt); }
+            let cachedEmp = localStorage.getItem('cached_employees'); if(cachedEmp) { registeredEmployees = JSON.parse(cachedEmp); updateDropdowns(); }
+            let cachedAtt = localStorage.getItem('cached_attendance'); if(cachedAtt) { attendanceLogs = JSON.parse(cachedAtt); }
         }
 
         async function syncOfflineData() {
@@ -440,8 +462,7 @@
                     try { await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) }); } 
                     catch(e) { return; } 
                 }
-                localStorage.removeItem('offline_attendance');
-                await fetchAttendance();
+                localStorage.removeItem('offline_attendance'); await fetchAttendance();
             }
         }
 
@@ -460,8 +481,7 @@
 
         async function registerEmployee() {
             if(!navigator.onLine) { alert("ဝန်ထမ်းအသစ် စာရင်းသွင်းရန် အင်တာနက် လိုအပ်ပါသည်။"); return; }
-            let name = document.getElementById('reg-name').value;
-            let position = document.getElementById('reg-position').value;
+            let name = document.getElementById('reg-name').value; let position = document.getElementById('reg-position').value;
             
             if(!name || !position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
             if(!temporaryFaceDescriptor) { 
@@ -472,25 +492,17 @@
             let btn = document.getElementById("reg-submit-btn");
             btn.innerText = "အချက်အလက်များ သိမ်းဆည်းနေပါသည်..."; btn.disabled = true;
 
-            let frontFile = document.getElementById('reg-id-front').files[0];
-            let backFile = document.getElementById('reg-id-back').files[0];
-            let frontUrl = await uploadImage(frontFile, 'front');
-            let backUrl = await uploadImage(backFile, 'back');
-
+            let frontFile = document.getElementById('reg-id-front').files[0]; let backFile = document.getElementById('reg-id-back').files[0];
+            let frontUrl = await uploadImage(frontFile, 'front'); let backUrl = await uploadImage(backFile, 'back');
             let faceDescArray = temporaryFaceDescriptor ? Array.from(temporaryFaceDescriptor) : null;
 
             let payload = {
-                emp_name: name, other_name: document.getElementById('reg-othername').value,
-                age: document.getElementById('reg-age').value, dob: document.getElementById('reg-dob').value,
-                birthplace: document.getElementById('reg-birthplace').value, religion: document.getElementById('reg-religion').value,
-                nrc: document.getElementById('reg-nrc').value, education: document.getElementById('reg-edu').value,
+                emp_name: name, other_name: document.getElementById('reg-othername').value, age: document.getElementById('reg-age').value, dob: document.getElementById('reg-dob').value,
+                birthplace: document.getElementById('reg-birthplace').value, religion: document.getElementById('reg-religion').value, nrc: document.getElementById('reg-nrc').value, education: document.getElementById('reg-edu').value,
                 position: position, phone: document.getElementById('reg-phone').value, address: document.getElementById('reg-address').value,
-                parent_name: document.getElementById('reg-p-name').value, parent_job: document.getElementById('reg-p-job').value,
-                parent_address: document.getElementById('reg-p-address').value, parent_phone: document.getElementById('reg-p-phone').value,
-                spouse_name: document.getElementById('reg-s-name').value, spouse_job: document.getElementById('reg-s-job').value,
-                spouse_address: document.getElementById('reg-s-address').value, spouse_phone: document.getElementById('reg-s-phone').value,
-                id_front_url: frontUrl, id_back_url: backUrl,
-                face_descriptor: faceDescArray ? JSON.stringify(faceDescArray) : null 
+                parent_name: document.getElementById('reg-p-name').value, parent_job: document.getElementById('reg-p-job').value, parent_address: document.getElementById('reg-p-address').value, parent_phone: document.getElementById('reg-p-phone').value,
+                spouse_name: document.getElementById('reg-s-name').value, spouse_job: document.getElementById('reg-s-job').value, spouse_address: document.getElementById('reg-s-address').value, spouse_phone: document.getElementById('reg-s-phone').value,
+                id_front_url: frontUrl, id_back_url: backUrl, face_descriptor: faceDescArray ? JSON.stringify(faceDescArray) : null 
             };
 
             try {
@@ -499,10 +511,8 @@
                 if(!data.error) {
                     alert(`ဝန်ထမ်းအမည် ${name} ကို အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
                     document.querySelectorAll('#register input').forEach(input => input.value = '');
-                    document.getElementById('face-status-text').innerText = "(Face ID မမှတ်ရသေးပါ)";
-                    document.getElementById('face-status-text').style.color = "#ffcccc";
-                    temporaryFaceDescriptor = null;
-                    await fetchEmployees(); showSection('dashboard');
+                    document.getElementById('face-status-text').innerText = "(Face ID မမှတ်ရသေးပါ)"; document.getElementById('face-status-text').style.color = "#ffcccc";
+                    temporaryFaceDescriptor = null; await fetchEmployees(); showSection('dashboard');
                 } else { alert("Database Error: " + data.error.message); }
             } catch(e) { alert("Network Error ဖြစ်နေပါသည်။ Database သို့ မရောက်ပါ။"); }
 
@@ -535,9 +545,34 @@
 
         function saveOfflineAttendance(payload, empName, action) {
             let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
-            offlineLogs.push(payload);
-            localStorage.setItem('offline_attendance', JSON.stringify(offlineLogs));
+            offlineLogs.push(payload); localStorage.setItem('offline_attendance', JSON.stringify(offlineLogs));
             alert(`[Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။`);
+        }
+
+        async function submitLeave() {
+            let empName = document.getElementById('leave-emp').value;
+            let lDate = document.getElementById('leave-date').value;
+            let reason = document.getElementById('leave-reason').value;
+            
+            if(!empName || !lDate || !reason) { alert("ဝန်ထမ်းအမည်၊ ရက်စွဲ နှင့် အကြောင်းအရာ အပြည့်အစုံ ဖြည့်စွက်ပါ။"); return; }
+            if(!navigator.onLine) { alert("ခွင့်တင်ရန် အင်တာနက် လိုအပ်ပါသည်။"); return; }
+
+            let payload = { emp_name: empName, leave_date: lDate, reason: reason, status: 'Pending' };
+
+            let btn = document.querySelector("#leave .btn-green");
+            btn.innerText = "ပို့ဆောင်နေပါသည်..."; btn.disabled = true;
+
+            try {
+                let res = await fetch(`${SUPABASE_URL}/leave_requests`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
+                let data = await res.json();
+                if(!data.error) {
+                    alert(`${empName} ၏ ခွင့်တောင်းခံလွှာကို Admin ထံသို့ အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ။`);
+                    document.getElementById('leave-emp').selectedIndex = 0; 
+                    document.getElementById('leave-date').value = ''; document.getElementById('leave-reason').value = '';
+                    await fetchLeaveRequests(); showSection('dashboard');
+                }
+            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
+            btn.innerText = "ခွင့်တင်ရန်"; btn.disabled = false;
         }
 
         function showSection(id) {
@@ -558,8 +593,8 @@
         function verifyAdmin() {
             if (document.getElementById('admin-pass-input').value === "HR2026") {
                 closeModal('password-modal'); showSection(targetAdminSection);
-                if(targetAdminSection === 'admin-panel') renderAdminTable(); 
-                if(targetAdminSection === 'employee-data') renderEmployeeTable();
+                if(targetAdminSection === 'admin-panel') { renderAdminLeaveTable(); renderAdminTable(); }
+                if(targetAdminSection === 'employee-data') { renderEmployeeTable(); }
             } else { alert("စကားဝှက် မှားယွင်းနေပါသည်။"); document.getElementById('admin-pass-input').value = ''; }
         }
 
@@ -571,13 +606,6 @@
             if(document.getElementById('ci-time')) document.getElementById('ci-time').value = timeStr;
             if(document.getElementById('co-date')) document.getElementById('co-date').value = dateStr;
             if(document.getElementById('co-time')) document.getElementById('co-time').value = timeStr;
-        }
-
-        function submitLeave() {
-            let empName = document.getElementById('leave-emp').value; let reason = document.getElementById('leave-reason').value;
-            if(!empName || !reason) { alert("ဝန်ထမ်းအမည် နှင့် အကြောင်းအရာ ရွေးချယ်/ရေးသားပါ။"); return; }
-            alert(`${empName} ၏ ခွင့်တောင်းခံလွှာကို အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ။`);
-            document.getElementById('leave-emp').selectedIndex = 0; document.getElementById('leave-reason').value = ''; showSection('dashboard');
         }
 
         function updateDropdowns() {
@@ -638,10 +666,48 @@
             const tableBody = document.getElementById('admin-table-body'); tableBody.innerHTML = ""; 
             if(attendanceLogs.length === 0) { tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>မှတ်တမ်းများ မရှိသေးပါ။</td></tr>"; return; }
             attendanceLogs.forEach(log => {
-                let color = log.type === 'Check In' ? '#28a745' : '#dc3545';
+                let color = log.type === 'Leave' ? '#D4AF37' : (log.type === 'Check In' ? '#28a745' : '#dc3545');
                 tableBody.innerHTML += `<tr><td>${log.name}</td><td style="color: ${color}; font-weight: bold;">${log.type}</td><td>${log.date}</td><td>${log.time}</td></tr>`;
             });
         }
+
+        function renderAdminLeaveTable() {
+            const tbody = document.getElementById('admin-leave-body'); tbody.innerHTML = "";
+            if(leaveRequests.length === 0) { tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>ခွင့်တောင်းခံလွှာများ မရှိသေးပါ။</td></tr>"; return; }
+            
+            leaveRequests.forEach(req => {
+                let statusColor = req.status === 'Approved' ? '#28a745' : (req.status === 'Rejected' ? '#dc3545' : '#D4AF37');
+                let actionBtns = "";
+                if(req.status === 'Pending') {
+                    actionBtns = `
+                        <button class="btn btn-green btn-small" onclick="updateLeaveStatus(${req.id}, 'Approved', '${req.emp_name}', '${req.leave_date}')">Approve</button>
+                        <button class="btn btn-red btn-small" onclick="updateLeaveStatus(${req.id}, 'Rejected', '${req.emp_name}', '${req.leave_date}')">Reject</button>
+                    `;
+                } else { actionBtns = `<span style="color:#666;">-</span>`; }
+                
+                tbody.innerHTML += `<tr>
+                    <td>${req.emp_name}</td><td>${req.leave_date}</td><td>${req.reason}</td>
+                    <td style="color:${statusColor}; font-weight:bold;">${req.status}</td><td>${actionBtns}</td>
+                </tr>`;
+            });
+        }
+
+        async function updateLeaveStatus(id, newStatus, empName, leaveDate) {
+            if(!navigator.onLine) { alert("အင်တာနက် လိုအပ်ပါသည်။"); return; }
+            try {
+                await fetch(`${SUPABASE_URL}/leave_requests?id=eq.${id}`, { method: 'PATCH', headers: fetchHeaders, body: JSON.stringify({ status: newStatus }) });
+                
+                if(newStatus === 'Approved') {
+                    let payload = { emp_name: empName, log_type: 'Leave', log_date: leaveDate, log_time: '-' };
+                    await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
+                    alert("ခွင့်ပြုပေးလိုက်ပြီး ပြက္ခဒိန်တွင် ပျက်ရက်/ခွင့် အဖြစ် မှတ်တမ်းတင်ပြီးပါပြီ။");
+                } else { alert("ခွင့်တောင်းခံမှုကို ပယ်ချလိုက်ပါပြီ။"); }
+                
+                await fetchLeaveRequests(); await fetchAttendance();
+                renderAdminLeaveTable(); renderAdminTable(); renderCalendar();
+            } catch(e) { alert("Error updating status."); }
+        }
+
         function renderCalendar() {
             const empName = document.getElementById('att-emp').value;
             const grid = document.getElementById('dynamic-calendar');
@@ -660,17 +726,19 @@
             const monthNames = ["ဇန်နဝါရီ", "ဖေဖော်ဝါရီ", "မတ်", "ဧပြီ", "မေ", "ဇွန်", "ဇူလိုင်", "သြဂုတ်", "စက်တင်ဘာ", "အောက်တိုဘာ", "နိုဝင်ဘာ", "ဒီဇင်ဘာ"];
             title.innerText = `${monthNames[month]}လ ${year} - ${empName} ၏ မှတ်တမ်း`;
 
-            // Database မှ လက်ရှိလအတွက် Check In ရက်များကို ရှာဖွေခြင်း
             let attendedDays = new Set();
+            let leaveDays = new Set();
+            
             attendanceLogs.forEach(log => {
-                if(log.name === empName && log.type === 'Check In') {
+                if(log.name === empName) {
                     let parts = log.date.split('-'); 
-                    if(parts.length === 3) {
+                    if(parts.length >= 3) {
                         let logY = parseInt(parts[0]);
                         let logM = parseInt(parts[1]) - 1; 
                         let logD = parseInt(parts[2]);
                         if(logY === year && logM === month) {
-                            attendedDays.add(logD);
+                            if(log.type === 'Check In') attendedDays.add(logD);
+                            if(log.type === 'Leave') leaveDays.add(logD);
                         }
                     }
                 }
@@ -689,9 +757,9 @@
             for(let d=1; d<=daysInMonth; d++) {
                 let statusClass = "";
                 if(attendedDays.has(d)) {
-                    statusClass = "cal-present"; // အလုပ်တက်လျှင် အစိမ်း
-                } else if (d <= today) {
-                    statusClass = "cal-absent"; // ရက်ကျော်သွားပြီး အလုပ်မတက်လျှင် အနီ
+                    statusClass = "cal-present";
+                } else if (leaveDays.has(d) || d <= today) {
+                    statusClass = "cal-absent"; 
                 }
                 html += `<div class="cal-day ${statusClass}">${d}</div>`;
             }
