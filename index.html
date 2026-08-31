@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ဝင်း အဆင့်မြင့်ဧည့်ရိပ်သာ - ဝန်ထမ်းစီမံခန့်ခွဲမှုစနစ်</title>
+    <!-- Face-API.js for Face Recognition -->
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
     <style>
         @font-face { font-family: 'Pyidaungsu'; src: local('Pyidaungsu'); }
         body { 
@@ -42,6 +45,7 @@
         .btn-red { background-color: #dc3545; width: 100%; margin-top: 10px;}
         .btn-blue { background-color: #007bff; width: 100%; margin-bottom: 15px;}
         .btn-small { padding: 8px 15px; font-size: 14px; margin: 0; width: auto; }
+        .btn:disabled { background-color: #6c757d; cursor: not-allowed; transform: none; opacity: 0.7;}
         .flex-btns { display: flex; gap: 15px; margin-top: 20px;}
         .flex-btns .btn { flex: 1; margin: 0; }
         
@@ -57,12 +61,6 @@
         th { border-bottom: 2px solid #D4AF37; padding: 12px; text-align: left; }
         td { border-bottom: 1px solid rgba(255,255,255,0.2); padding: 12px; }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
-        .cal-header { font-weight: bold; padding: 10px; background: #00004d; color: white; border-radius: 5px;}
-        .cal-day { padding: 15px 5px; background: rgba(255,255,255,0.2); border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); }
-        .cal-present { background: rgba(40, 167, 69, 0.6); }
-        .cal-absent { background: rgba(220, 53, 69, 0.6); }
-
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); color: #00004d; }
         .modal-content input { margin: 15px 0; border: 1px solid #00004d; }
@@ -73,6 +71,12 @@
         .profile-data strong { display: inline-block; width: 150px; color: #555; }
         .face-id-badge { background: #28a745; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
         .img-preview { max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; }
+        
+        /* Camera Modal Styles */
+        .camera-container { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
+        #camera-video { width: 100%; border-radius: 10px; background: #000; transform: scaleX(-1); /* Mirror effect */ }
+        #camera-canvas { position: absolute; top: 0; left: 0; z-index: 10; }
+        .camera-msg { color: #D4AF37; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -94,6 +98,22 @@
         <a onclick="showSection('register')" id="nav-register">ဝန်ထမ်းအသစ်စာရင်းသွင်းရန်</a>
         <a onclick="openAdminModal('employee-data')" id="nav-employee-data">ဝန်ထမ်းအချက်အလက်စနစ်</a>
     </nav>
+
+    <!-- Camera Modal for Face ID -->
+    <div id="camera-modal" class="modal-overlay">
+        <div class="modal-content" style="width: auto; min-width: 320px;">
+            <h3 style="margin-top:0;" id="camera-title">Face ID စစ်ဆေးခြင်း</h3>
+            <div class="camera-container" id="video-container">
+                <video id="camera-video" autoplay muted playsinline></video>
+                <canvas id="camera-canvas"></canvas>
+            </div>
+            <p class="camera-msg" id="camera-msg">ကင်မရာဖွင့်နေပါသည်...</p>
+            <div class="flex-btns" id="camera-actions">
+                <button class="btn btn-blue" id="btn-capture-face" style="display:none;" onclick="captureFaceForRegistration()">မျက်နှာ မှတ်သားမည်</button>
+                <button class="btn btn-red" onclick="closeCamera()">ပိတ်မည်</button>
+            </div>
+        </div>
+    </div>
 
     <div id="password-modal" class="modal-overlay">
         <div class="modal-content">
@@ -122,7 +142,7 @@
                 <div class="dash-mm">ကြိုဆိုပါသည်</div>
                 <div class="dash-en">Welcome</div>
                 <div class="dash-note">အလုပ်ဝင်ချိန်၊ ပြန်ချိန်များတွင် စာရင်းသွင်းရန် မမေ့ပါနှင့်။</div>
-                <p id="loading-status" style="color:#D4AF37; margin-top:20px;">(Database ချိတ်ဆက်နေပါသည်...)</p>
+                <p id="loading-status" style="color:#D4AF37; margin-top:20px;">(Database နှင့် AI Models ချိတ်ဆက်နေပါသည်...)</p>
             </div>
         </div>
 
@@ -133,8 +153,8 @@
                 <div class="form-group"><label>ရက်စွဲ</label><input type="text" id="ci-date" readonly></div>
                 <div class="form-group"><label>အချိန်</label><input type="text" id="ci-time" readonly></div>
             </div>
-            <button class="btn btn-blue" onclick="scanFaceID()">Face ID စစ်ဆေးရန်</button>
-            <button class="btn btn-green" onclick="submitData('Check In')">Check In</button>
+            <button class="btn btn-blue" id="btn-ci-face" onclick="startVerification('Check In')">Face ID ဖြင့် Check In ဝင်မည်</button>
+            <button class="btn btn-green" id="btn-ci-submit" disabled onclick="submitData('Check In')" style="display:none;">Check In</button>
         </div>
 
         <div id="checkout" class="section">
@@ -144,44 +164,23 @@
                 <div class="form-group"><label>ရက်စွဲ</label><input type="text" id="co-date" readonly></div>
                 <div class="form-group"><label>အချိန်</label><input type="text" id="co-time" readonly></div>
             </div>
-            <button class="btn btn-blue" onclick="scanFaceID()">Face ID စစ်ဆေးရန်</button>
-            <button class="btn btn-red" onclick="submitData('Check Out')">Check Out</button>
+            <button class="btn btn-blue" id="btn-co-face" onclick="startVerification('Check Out')">Face ID ဖြင့် Check Out ဝင်မည်</button>
+            <button class="btn btn-red" id="btn-co-submit" disabled onclick="submitData('Check Out')" style="display:none;">Check Out</button>
         </div>
 
         <div id="leave" class="section">
             <h2 class="title">ခွင့်တင်ရန်</h2>
             <div class="form-group"><label>ဝန်ထမ်းအမည်</label><select class="emp-dropdown" id="leave-emp"></select></div>
             <div class="form-group"><label>အကြောင်းအရာ</label><textarea id="leave-reason" rows="5" placeholder="ခွင့်ယူရသည့် အကြောင်းရင်းကို အသေးစိတ်ရေးသားပါ..."></textarea></div>
-            <div class="flex-btns">
-                <button class="btn btn-green" onclick="submitLeave()">ခွင့်တင်ရန်</button>
-                <button class="btn btn-red" onclick="showSection('dashboard')">ပယ်ဖျက်ရန်</button>
-            </div>
+            <div class="flex-btns"><button class="btn btn-green" onclick="submitLeave()">ခွင့်တင်ရန်</button><button class="btn btn-red" onclick="showSection('dashboard')">ပယ်ဖျက်ရန်</button></div>
         </div>
 
         <div id="attendance" class="section">
-            <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန်</h2>
-            <div class="form-group"><label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label><select class="emp-dropdown" id="att-emp"></select></div>
-            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
-                <p><strong>သြဂုတ်လ ၂၀၂၆</strong> (စမ်းသပ်ပြသမှု)</p>
-                <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 14px;">
-                    <span style="color: #28a745;">■ အလုပ်တက်ရက်</span><span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
-                </div>
-                <div class="calendar-grid">
-                    <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
-                    <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day">1</div><div class="cal-day">2</div>
-                    <div class="cal-day cal-present">3</div><div class="cal-day cal-present">4</div><div class="cal-day cal-present">5</div><div class="cal-day cal-present">6</div><div class="cal-day cal-present">7</div><div class="cal-day cal-present">8</div><div class="cal-day">9</div>
-                    <div class="cal-day cal-present">10</div><div class="cal-day cal-present">11</div><div class="cal-day cal-absent">12</div><div class="cal-day cal-present">13</div><div class="cal-day cal-present">14</div><div class="cal-day cal-present">15</div><div class="cal-day">16</div>
-                    <div class="cal-day cal-present">17</div><div class="cal-day cal-present">18</div><div class="cal-day cal-present">19</div><div class="cal-day cal-present">20</div><div class="cal-day cal-present">21</div><div class="cal-day cal-present">22</div><div class="cal-day">23</div>
-                    <div class="cal-day cal-present">24</div><div class="cal-day cal-present">25</div><div class="cal-day cal-present">26</div><div class="cal-day cal-present">27</div><div class="cal-day cal-present">28</div><div class="cal-day cal-present">29</div><div class="cal-day">30</div>
-                    <div class="cal-day cal-present">31</div>
-                </div>
-            </div>
+            <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန် (Under Construction)</h2>
         </div>
         
         <div id="register" class="section">
             <h2 class="title">ဝန်ထမ်းအသစ်စာရင်းသွင်းရန်</h2>
-            
-            <h3 class="subtitle">ကိုယ်ရေးအချက်အလက်</h3>
             <div class="grid-2col">
                 <div class="form-group"><input type="text" id="reg-name" placeholder="အမည် (မဖြစ်မနေထည့်ရန်)"></div>
                 <div class="form-group"><input type="text" id="reg-othername" placeholder="အခြားအမည်"></div>
@@ -198,18 +197,14 @@
 
             <h3 class="subtitle">မိဘအချက်အလက်</h3>
             <div class="grid-2col">
-                <div class="form-group"><input type="text" id="reg-p-name" placeholder="မိဘအမည်"></div>
-                <div class="form-group"><input type="text" id="reg-p-job" placeholder="မိဘအလုပ်အကိုင်"></div>
-                <div class="form-group"><input type="text" id="reg-p-address" placeholder="မိဘနေရပ်လိပ်စာ"></div>
-                <div class="form-group"><input type="text" id="reg-p-phone" placeholder="မိဘဖုန်းနံပါတ်"></div>
+                <div class="form-group"><input type="text" id="reg-p-name" placeholder="မိဘအမည်"></div><div class="form-group"><input type="text" id="reg-p-job" placeholder="မိဘအလုပ်အကိုင်"></div>
+                <div class="form-group"><input type="text" id="reg-p-address" placeholder="မိဘနေရပ်လိပ်စာ"></div><div class="form-group"><input type="text" id="reg-p-phone" placeholder="မိဘဖုန်းနံပါတ်"></div>
             </div>
 
             <h3 class="subtitle">ဇနီး/ခင်ပွန်းအချက်အလက်</h3>
             <div class="grid-2col">
-                <div class="form-group"><input type="text" id="reg-s-name" placeholder="ဇနီး/ခင်ပွန်းအမည်"></div>
-                <div class="form-group"><input type="text" id="reg-s-job" placeholder="ဇနီး/ခင်ပွန်းအလုပ်အကိုင်"></div>
-                <div class="form-group"><input type="text" id="reg-s-address" placeholder="ဇနီး/ခင်ပွန်းနေရပ်လိပ်စာ"></div>
-                <div class="form-group"><input type="text" id="reg-s-phone" placeholder="ဇနီး/ခင်ပွန်းဖုန်းနံပါတ်"></div>
+                <div class="form-group"><input type="text" id="reg-s-name" placeholder="ဇနီး/ခင်ပွန်းအမည်"></div><div class="form-group"><input type="text" id="reg-s-job" placeholder="ဇနီး/ခင်ပွန်းအလုပ်အကိုင်"></div>
+                <div class="form-group"><input type="text" id="reg-s-address" placeholder="ဇနီး/ခင်ပွန်းနေရပ်လိပ်စာ"></div><div class="form-group"><input type="text" id="reg-s-phone" placeholder="ဇနီး/ခင်ပွန်းဖုန်းနံပါတ်"></div>
             </div>
 
             <h3 class="subtitle">မှတ်ပုံတင်အချက်အလက် နှင့် Face ID</h3>
@@ -221,16 +216,18 @@
                 </div>
             </div>
             
-            <button class="btn btn-blue" id="reg-submit-btn" style="margin-top:20px;" onclick="registerEmployee()">Face ID မှတ်သားရန် & စာရင်းသွင်းမည်</button>
+            <div class="form-group" style="text-align:center;">
+                <p id="face-status-text" style="color:#ffcccc; font-weight:bold;">(Face ID မမှတ်ရသေးပါ)</p>
+                <button class="btn btn-blue" id="btn-open-reg-cam" style="margin-bottom:10px;" onclick="openCameraForRegistration()">၁။ မျက်နှာ Face ID မှတ်သားမည်</button>
+            </div>
+            <button class="btn btn-green" id="reg-submit-btn" style="margin-top:20px;" disabled onclick="registerEmployee()">၂။ အချက်အလက်များ စာရင်းသွင်းမည်</button>
         </div>
 
         <div id="employee-data" class="section">
             <h2 class="title">ဝန်ထမ်းအချက်အလက်စနစ် (Admin Only)</h2>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr><th>ID / အမည်</th><th>ရာထူး</th><th>ဖုန်းနံပါတ်</th><th>လုပ်ဆောင်ချက်</th></tr>
-                    </thead>
+                    <thead><tr><th>ID / အမည်</th><th>ရာထူး</th><th>ဖုန်းနံပါတ်</th><th>လုပ်ဆောင်ချက်</th></tr></thead>
                     <tbody id="emp-data-body"></tbody>
                 </table>
             </div>
@@ -240,9 +237,7 @@
             <h2 class="title">စီမံခန့်ခွဲမှု (Admin Only) - နေ့စဥ်မှတ်တမ်းများ</h2>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr><th>ဝန်ထမ်းအမည်</th><th>အမျိုးအစား</th><th>ရက်စွဲ</th><th>အချိန်</th></tr>
-                    </thead>
+                    <thead><tr><th>ဝန်ထမ်းအမည်</th><th>အမျိုးအစား</th><th>ရက်စွဲ</th><th>အချိန်</th></tr></thead>
                     <tbody id="admin-table-body"></tbody>
                 </table>
             </div>
@@ -253,30 +248,28 @@
         const SUPABASE_URL = "https://vveqtipcnrzbpmjwzbpm.supabase.co/rest/v1";
         const STORAGE_URL = "https://vveqtipcnrzbpmjwzbpm.supabase.co/storage/v1";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2ZXF0aXBjbnJ6YnBtand6YnBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTUxODAsImV4cCI6MjEwMTY3MTE4MH0.ls0NUKwNWnTbqqTfm6jOZdoW1sszaCtdY34vwJpiyeA";
-        const fetchHeaders = {
-            "apikey": SUPABASE_KEY,
-            "Authorization": "Bearer " + SUPABASE_KEY,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-        };
+        const fetchHeaders = { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "return=representation" };
 
         let attendanceLogs = [];
         let registeredEmployees = [];
         let targetAdminSection = "";
+        
+        // Face ID Variables
+        let aiModelsLoaded = false;
+        let videoStream = null;
+        let detectionInterval = null;
+        let temporaryFaceDescriptor = null; // Stored during registration
+        let verificationTargetDescriptor = null;
+        let currentAction = "";
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker Registered'))
-                    .catch(err => console.log('Service Worker Error', err));
-            });
+            window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Error', err)); });
         }
 
         window.onload = async function() { 
+            loadAIModels(); // Load Face API models
             if(navigator.onLine) {
-                await fetchEmployees();
-                await fetchAttendance();
-                document.getElementById('loading-status').innerText = "(Database ချိတ်ဆက်မှု အောင်မြင်ပါသည်)";
+                await fetchEmployees(); await fetchAttendance();
                 syncOfflineData(); 
             } else {
                 document.getElementById('loading-status').innerText = "(Offline ဖြစ်နေပါသည်။ Data များကို ယာယီသိမ်းဆည်းထားပါမည်)";
@@ -285,16 +278,115 @@
             setInterval(updateTime, 1000);
         };
 
-        window.addEventListener('online', async () => {
-            document.getElementById('loading-status').innerText = "(အင်တာနက် ပြန်လည်ရရှိပါပြီ။ Database သို့ ချိတ်ဆက်နေပါသည်...)";
-            await fetchEmployees();
-            await fetchAttendance();
-            syncOfflineData();
-        });
-        
-        window.addEventListener('offline', () => {
-            document.getElementById('loading-status').innerText = "(Offline ဖြစ်နေပါသည်။ Data များကို ယာယီသိမ်းဆည်းထားပါမည်)";
-        });
+        // --- AI FACE API LOGIC ---
+        async function loadAIModels() {
+            try {
+                // Loading models from a reliable public CDN
+                const modelUrl = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+                await faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl);
+                aiModelsLoaded = true;
+                if(navigator.onLine) document.getElementById('loading-status').innerText = "(Database နှင့် AI Models အသင့်ဖြစ်ပါပြီ)";
+            } catch(e) {
+                document.getElementById('loading-status').innerText = "(AI Model Load လုပ်ရာတွင် Error ဖြစ်နေပါသည်။ အင်တာနက်စစ်ဆေးပါ။)";
+                console.error("AI Model error", e);
+            }
+        }
+
+        async function openCamera(mode) {
+            if(!aiModelsLoaded) { alert("AI Models အသင့်မဖြစ်သေးပါ။ ခေတ္တစောင့်ပေးပါ။"); return; }
+            const video = document.getElementById('camera-video');
+            document.getElementById('camera-modal').style.display = 'flex';
+            document.getElementById('camera-msg').innerText = "ကင်မရာဖွင့်နေပါသည်...";
+            
+            if(mode === 'register') {
+                document.getElementById('camera-title').innerText = "မျက်နှာ မှတ်သားခြင်း";
+                document.getElementById('btn-capture-face').style.display = 'inline-block';
+            } else {
+                document.getElementById('camera-title').innerText = "Face ID ဖြင့် တိုက်စစ်ခြင်း";
+                document.getElementById('btn-capture-face').style.display = 'none';
+            }
+
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = videoStream;
+            } catch(e) { 
+                document.getElementById('camera-msg').innerText = "ကင်မရာ အသုံးပြုခွင့် မရရှိပါ။"; 
+                console.error(e);
+            }
+        }
+
+        function closeCamera() {
+            document.getElementById('camera-modal').style.display = 'none';
+            if(videoStream) { videoStream.getTracks().forEach(track => track.stop()); }
+            if(detectionInterval) { clearInterval(detectionInterval); }
+            document.getElementById('camera-msg').innerText = "";
+        }
+
+        // 1. Registration Phase (Capture Face)
+        function openCameraForRegistration() {
+            temporaryFaceDescriptor = null;
+            openCamera('register');
+        }
+
+        async function captureFaceForRegistration() {
+            const video = document.getElementById('camera-video');
+            document.getElementById('camera-msg').innerText = "မျက်နှာကို ဖတ်နေပါသည်... ငြိမ်ငြိမ်နေပေးပါ။";
+            
+            const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+            
+            if(detection) {
+                temporaryFaceDescriptor = detection.descriptor;
+                document.getElementById('camera-msg').innerText = "အောင်မြင်ပါသည်။ မျက်နှာမှတ်သားပြီးပါပြီ။";
+                document.getElementById('face-status-text').innerText = "(Face ID မှတ်သားပြီးပါပြီ ✓)";
+                document.getElementById('face-status-text').style.color = "#28a745";
+                document.getElementById('reg-submit-btn').disabled = false; // Enable submit
+                setTimeout(closeCamera, 1500);
+            } else {
+                document.getElementById('camera-msg').innerText = "မျက်နှာကို သေချာမတွေ့ရပါ။ အလင်းရောင်နှင့် မျက်နှာအနေအထားကို ပြင်ပါ။";
+            }
+        }
+
+        // 2. Verification Phase (Check In/Out)
+        async function startVerification(action) {
+            currentAction = action;
+            let empName = (action === 'Check In') ? document.getElementById('ci-emp').value : document.getElementById('co-emp').value;
+            if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
+
+            // Find employee descriptor
+            let emp = registeredEmployees.find(e => e.name === empName);
+            if(!emp || !emp.faceDescriptor) {
+                alert("ဤဝန်ထမ်းသည် Face ID မှတ်သားထားခြင်း မရှိပါ။ Admin ထံ ဆက်သွယ်ပါ။"); return;
+            }
+            verificationTargetDescriptor = new Float32Array(JSON.parse(emp.faceDescriptor));
+
+            await openCamera('verify');
+            const video = document.getElementById('camera-video');
+            
+            video.addEventListener('play', () => {
+                document.getElementById('camera-msg').innerText = "မျက်နှာတိုက်စစ်နေပါသည်... ကင်မရာကိုကြည့်ပါ။";
+                detectionInterval = setInterval(async () => {
+                    const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+                    if(detection) {
+                        const distance = faceapi.euclideanDistance(detection.descriptor, verificationTargetDescriptor);
+                        if(distance < 0.45) { // Threshold for matching
+                            clearInterval(detectionInterval);
+                            document.getElementById('camera-msg').innerText = "Face ID မှန်ကန်ပါသည်။";
+                            document.getElementById('camera-msg').style.color = "#28a745";
+                            setTimeout(() => {
+                                closeCamera();
+                                submitData(currentAction); // Auto submit after success
+                            }, 1500);
+                        } else {
+                            document.getElementById('camera-msg').innerText = "မျက်နှာ တိုက်စစ်၍ မရပါ။ (Match Failed)";
+                            document.getElementById('camera-msg').style.color = "#dc3545";
+                        }
+                    }
+                }, 1000);
+            });
+        }
+        // --- END AI FACE API LOGIC ---
 
         async function fetchEmployees() {
             try {
@@ -303,26 +395,19 @@
                 if(!data.error && Array.isArray(data)) {
                     registeredEmployees = data.map(emp => ({
                         id: emp.id.toString().padStart(2, '0'),
-                        name: emp.emp_name,
-                        othername: emp.other_name || "-",
-                        age: emp.age || "-",
-                        dob: emp.dob || "-",
-                        birthplace: emp.birthplace || "-",
-                        religion: emp.religion || "-",
-                        nrc: emp.nrc || "-",
-                        edu: emp.education || "-",
-                        position: emp.position,
-                        phone: emp.phone || "-",
-                        address: emp.address || "-",
+                        name: emp.emp_name, othername: emp.other_name || "-", age: emp.age || "-", dob: emp.dob || "-",
+                        birthplace: emp.birthplace || "-", religion: emp.religion || "-", nrc: emp.nrc || "-", edu: emp.education || "-",
+                        position: emp.position, phone: emp.phone || "-", address: emp.address || "-",
                         parents: { name: emp.parent_name || "-", job: emp.parent_job || "-", address: emp.parent_address || "-", phone: emp.parent_phone || "-" },
                         spouse: { name: emp.spouse_name || "-", job: emp.spouse_job || "-", address: emp.spouse_address || "-", phone: emp.spouse_phone || "-" },
                         images: { front: emp.id_front_url || "", back: emp.id_back_url || "" },
-                        hasFaceID: true
+                        faceDescriptor: emp.face_descriptor || null, // Get Face data
+                        hasFaceID: emp.face_descriptor ? true : false
                     }));
                     updateDropdowns();
                     localStorage.setItem('cached_employees', JSON.stringify(registeredEmployees));
                 }
-            } catch(e) { console.log("Offline mode - using cached employees"); }
+            } catch(e) { console.log("Offline mode"); }
         }
 
         async function fetchAttendance() {
@@ -333,7 +418,7 @@
                     attendanceLogs = data.map(log => ({ name: log.emp_name, type: log.log_type, date: log.log_date, time: log.log_time }));
                     localStorage.setItem('cached_attendance', JSON.stringify(attendanceLogs));
                 }
-            } catch(e) { console.log("Offline mode - using cached attendance"); }
+            } catch(e) { console.log("Offline mode"); }
         }
 
         function loadOfflineData() {
@@ -347,12 +432,10 @@
             let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
             if(offlineLogs.length > 0) {
                 for(let payload of offlineLogs) {
-                    try {
-                        await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
-                    } catch(e) { console.error("Sync failed for", payload); return; } 
+                    try { await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) }); } 
+                    catch(e) { return; } 
                 }
                 localStorage.removeItem('offline_attendance');
-                alert("Offline တွင် ဖြည့်သွင်းထားသော မှတ်တမ်းများကို Database သို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။");
                 await fetchAttendance();
             }
         }
@@ -361,28 +444,13 @@
             if (!file) return "";
             const fileExt = file.name.split('.').pop();
             const fileName = `${prefix}_${Date.now()}.${fileExt}`;
-            
             try {
                 let res = await fetch(`${STORAGE_URL}/object/id_cards/${fileName}`, {
-                    method: 'POST',
-                    headers: {
-                        "apikey": SUPABASE_KEY,
-                        "Authorization": "Bearer " + SUPABASE_KEY,
-                        "Content-Type": file.type
-                    },
-                    body: file
+                    method: 'POST', headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": file.type }, body: file
                 });
-                
-                if (res.ok) {
-                    return `${STORAGE_URL}/object/public/id_cards/${fileName}`;
-                } else {
-                    console.error("Upload error");
-                    return "";
-                }
-            } catch (e) {
-                console.error(e);
+                if (res.ok) return `${STORAGE_URL}/object/public/id_cards/${fileName}`;
                 return "";
-            }
+            } catch (e) { return ""; }
         }
 
         async function registerEmployee() {
@@ -391,62 +459,53 @@
             let position = document.getElementById('reg-position').value;
             
             if(!name || !position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
+            if(!temporaryFaceDescriptor) { alert("Face ID မှတ်သားခြင်း မရှိသေးပါ။ (အဆင့် ၁ ကိုလုပ်ပါ)"); return; }
             
             let btn = document.getElementById("reg-submit-btn");
-            btn.innerText = "ဓာတ်ပုံများ သိမ်းဆည်းနေပါသည်...";
-            btn.disabled = true;
+            btn.innerText = "အချက်အလက်များ သိမ်းဆည်းနေပါသည်..."; btn.disabled = true;
 
             let frontFile = document.getElementById('reg-id-front').files[0];
             let backFile = document.getElementById('reg-id-back').files[0];
-            
             let frontUrl = await uploadImage(frontFile, 'front');
             let backUrl = await uploadImage(backFile, 'back');
 
+            // Convert Float32Array to Array for JSON Storage
+            let faceDescArray = Array.from(temporaryFaceDescriptor);
+
             let payload = {
-                emp_name: name,
-                other_name: document.getElementById('reg-othername').value,
-                age: document.getElementById('reg-age').value,
-                dob: document.getElementById('reg-dob').value,
-                birthplace: document.getElementById('reg-birthplace').value,
-                religion: document.getElementById('reg-religion').value,
-                nrc: document.getElementById('reg-nrc').value,
-                education: document.getElementById('reg-edu').value,
-                position: position,
-                phone: document.getElementById('reg-phone').value,
-                address: document.getElementById('reg-address').value,
-                parent_name: document.getElementById('reg-p-name').value,
-                parent_job: document.getElementById('reg-p-job').value,
-                parent_address: document.getElementById('reg-p-address').value,
-                parent_phone: document.getElementById('reg-p-phone').value,
-                spouse_name: document.getElementById('reg-s-name').value,
-                spouse_job: document.getElementById('reg-s-job').value,
-                spouse_address: document.getElementById('reg-s-address').value,
-                spouse_phone: document.getElementById('reg-s-phone').value,
-                id_front_url: frontUrl,
-                id_back_url: backUrl
+                emp_name: name, other_name: document.getElementById('reg-othername').value,
+                age: document.getElementById('reg-age').value, dob: document.getElementById('reg-dob').value,
+                birthplace: document.getElementById('reg-birthplace').value, religion: document.getElementById('reg-religion').value,
+                nrc: document.getElementById('reg-nrc').value, education: document.getElementById('reg-edu').value,
+                position: position, phone: document.getElementById('reg-phone').value, address: document.getElementById('reg-address').value,
+                parent_name: document.getElementById('reg-p-name').value, parent_job: document.getElementById('reg-p-job').value,
+                parent_address: document.getElementById('reg-p-address').value, parent_phone: document.getElementById('reg-p-phone').value,
+                spouse_name: document.getElementById('reg-s-name').value, spouse_job: document.getElementById('reg-s-job').value,
+                spouse_address: document.getElementById('reg-s-address').value, spouse_phone: document.getElementById('reg-s-phone').value,
+                id_front_url: frontUrl, id_back_url: backUrl,
+                face_descriptor: JSON.stringify(faceDescArray) // Saved to DB
             };
 
             try {
                 let res = await fetch(`${SUPABASE_URL}/employees`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                 let data = await res.json();
                 if(!data.error) {
-                    alert(`ဝန်ထမ်းအမည် ${name} ကို Database သို့ အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
+                    alert(`ဝန်ထမ်းအမည် ${name} ကို အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
                     document.querySelectorAll('#register input').forEach(input => input.value = '');
-                    await fetchEmployees(); 
-                    showSection('dashboard');
+                    document.getElementById('face-status-text').innerText = "(Face ID မမှတ်ရသေးပါ)";
+                    document.getElementById('face-status-text').style.color = "#ffcccc";
+                    temporaryFaceDescriptor = null;
+                    await fetchEmployees(); showSection('dashboard');
                 } else { alert("Database Error: " + data.error.message); }
             } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
 
-            btn.innerText = "Face ID မှတ်သားရန် & စာရင်းသွင်းမည်";
-            btn.disabled = false;
+            btn.innerText = "၂။ အချက်အလက်များ စာရင်းသွင်းမည်";
         }
 
         async function submitData(action) {
             let empName = (action === 'Check In') ? document.getElementById('ci-emp').value : document.getElementById('co-emp').value;
             let dateVal = (action === 'Check In') ? document.getElementById('ci-date').value : document.getElementById('co-date').value;
             let timeVal = (action === 'Check In') ? document.getElementById('ci-time').value : document.getElementById('co-time').value;
-
-            if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
 
             let payload = { emp_name: empName, log_type: action, log_date: dateVal, log_time: timeVal };
             
@@ -455,13 +514,11 @@
                     let res = await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                     let data = await res.json();
                     if(!data.error) {
-                        alert(`${empName} ၏ ${action} မှတ်တမ်းကို Database သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
+                        alert(`Face ID မှန်ကန်ပါသည်။ ${empName} ၏ ${action} ကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
                         await fetchAttendance(); 
                     }
                 } catch(e) { saveOfflineAttendance(payload, empName, action); }
-            } else {
-                saveOfflineAttendance(payload, empName, action);
-            }
+            } else { saveOfflineAttendance(payload, empName, action); }
             
             if(action === 'Check In') document.getElementById('ci-emp').selectedIndex = 0;
             if(action === 'Check Out') document.getElementById('co-emp').selectedIndex = 0;
@@ -472,7 +529,7 @@
             let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
             offlineLogs.push(payload);
             localStorage.setItem('offline_attendance', JSON.stringify(offlineLogs));
-            alert(`[Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။ အင်တာနက်ရချိန်တွင် Database သို့ အလိုအလျောက် ပေးပို့ပါမည်။`);
+            alert(`Face ID မှန်ကန်ပါသည်။ [Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။`);
         }
 
         function showSection(id) {
@@ -485,18 +542,14 @@
         }
 
         function openAdminModal(sectionId) {
-            targetAdminSection = sectionId;
-            document.getElementById('password-modal').style.display = 'flex';
-            document.getElementById('admin-pass-input').value = '';
-            document.getElementById('admin-pass-input').focus();
+            targetAdminSection = sectionId; document.getElementById('password-modal').style.display = 'flex';
+            document.getElementById('admin-pass-input').value = ''; document.getElementById('admin-pass-input').focus();
         }
-
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-
+        
         function verifyAdmin() {
             if (document.getElementById('admin-pass-input').value === "HR2026") {
-                closeModal('password-modal');
-                showSection(targetAdminSection);
+                closeModal('password-modal'); showSection(targetAdminSection);
                 if(targetAdminSection === 'admin-panel') renderAdminTable(); 
                 if(targetAdminSection === 'employee-data') renderEmployeeTable();
             } else { alert("စကားဝှက် မှားယွင်းနေပါသည်။"); document.getElementById('admin-pass-input').value = ''; }
@@ -512,16 +565,11 @@
             if(document.getElementById('co-time')) document.getElementById('co-time').value = timeStr;
         }
 
-        function scanFaceID() { alert("[Demo] Device Camera ပွင့်လာပြီး Face ID လုပ်ဆောင်နေပါသည်..."); }
-
         function submitLeave() {
-            let empName = document.getElementById('leave-emp').value;
-            let reason = document.getElementById('leave-reason').value;
-            if(!empName) { alert("ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
-            if(!reason) { alert("ခွင့်ယူရသည့် အကြောင်းရင်းကို ရေးသားပါ။"); return; }
+            let empName = document.getElementById('leave-emp').value; let reason = document.getElementById('leave-reason').value;
+            if(!empName || !reason) { alert("ဝန်ထမ်းအမည် နှင့် အကြောင်းအရာ ရွေးချယ်/ရေးသားပါ။"); return; }
             alert(`${empName} ၏ ခွင့်တောင်းခံလွှာကို အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ။`);
-            document.getElementById('leave-emp').selectedIndex = 0; document.getElementById('leave-reason').value = '';
-            showSection('dashboard');
+            document.getElementById('leave-emp').selectedIndex = 0; document.getElementById('leave-reason').value = ''; showSection('dashboard');
         }
 
         function updateDropdowns() {
@@ -534,8 +582,7 @@
         }
 
         function renderEmployeeTable() {
-            const tableBody = document.getElementById('emp-data-body');
-            tableBody.innerHTML = ""; 
+            const tableBody = document.getElementById('emp-data-body'); tableBody.innerHTML = ""; 
             if(registeredEmployees.length === 0) { tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ဝန်ထမ်းအချက်အလက် မရှိသေးပါ။</td></tr>"; return; }
             registeredEmployees.forEach((emp, index) => {
                 tableBody.innerHTML += `<tr><td>ID:${emp.id} - ${emp.name}</td><td>${emp.position}</td><td>${emp.phone}</td><td><button class="btn btn-blue btn-small" onclick="viewProfile(${index})">အပြည့်အစုံကြည့်ရန်</button></td></tr>`;
@@ -545,10 +592,8 @@
         function viewProfile(index) {
             let emp = registeredEmployees[index];
             let faceIdStatus = emp.hasFaceID ? '<span class="face-id-badge">✓ Registered</span>' : '<span style="color:red;">Not Registered</span>';
-            
             let frontImg = emp.images.front ? `<img src="${emp.images.front}" class="img-preview" alt="Front ID">` : '<span>ဓာတ်ပုံမထည့်ထားပါ</span>';
             let backImg = emp.images.back ? `<img src="${emp.images.back}" class="img-preview" alt="Back ID">` : '<span>ဓာတ်ပုံမထည့်ထားပါ</span>';
-
             let html = `
                 <div class="profile-data">
                     <h3 class="profile-section-title">ကိုယ်ရေးအချက်အလက်</h3>
@@ -571,28 +616,18 @@
                         <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.spouse.phone}</div><div style="grid-column: span 2;"><strong>နေရပ်လိပ်စာ:</strong> ${emp.spouse.address}</div>
                     </div>
                     <h3 class="profile-section-title">လုံခြုံရေးနှင့် မှတ်ပုံတင်</h3>
-                    <div class="profile-grid" style="grid-template-columns: 1fr;">
-                        <div><strong>Face ID:</strong> ${faceIdStatus}</div>
-                    </div>
+                    <div class="profile-grid" style="grid-template-columns: 1fr;"><div><strong>Face ID:</strong> ${faceIdStatus}</div></div>
                     <div class="grid-2col" style="margin-top:10px; text-align:center;">
-                        <div>
-                            <p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (ရှေ့)</strong></p>
-                            ${frontImg}
-                        </div>
-                        <div>
-                            <p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (နောက်)</strong></p>
-                            ${backImg}
-                        </div>
+                        <div><p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (ရှေ့)</strong></p>${frontImg}</div>
+                        <div><p style="margin-bottom:5px;"><strong>မှတ်ပုံတင် (နောက်)</strong></p>${backImg}</div>
                     </div>
                 </div>
             `;
-            document.getElementById('profile-body').innerHTML = html;
-            document.getElementById('profile-modal').style.display = 'flex';
+            document.getElementById('profile-body').innerHTML = html; document.getElementById('profile-modal').style.display = 'flex';
         }
 
         function renderAdminTable() {
-            const tableBody = document.getElementById('admin-table-body');
-            tableBody.innerHTML = ""; 
+            const tableBody = document.getElementById('admin-table-body'); tableBody.innerHTML = ""; 
             if(attendanceLogs.length === 0) { tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>မှတ်တမ်းများ မရှိသေးပါ။</td></tr>"; return; }
             attendanceLogs.forEach(log => {
                 let color = log.type === 'Check In' ? '#28a745' : '#dc3545';
