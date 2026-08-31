@@ -57,24 +57,20 @@
         th { border-bottom: 2px solid #D4AF37; padding: 12px; text-align: left; }
         td { border-bottom: 1px solid rgba(255,255,255,0.2); padding: 12px; }
 
-        /* Calendar Mockup */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
         .cal-header { font-weight: bold; padding: 10px; background: #00004d; color: white; border-radius: 5px;}
         .cal-day { padding: 15px 5px; background: rgba(255,255,255,0.2); border-radius: 5px; border: 1px solid rgba(255,255,255,0.3); }
         .cal-present { background: rgba(40, 167, 69, 0.6); }
         .cal-absent { background: rgba(220, 53, 69, 0.6); }
 
-        /* Modals */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 15px; width: 300px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); color: #00004d; }
         .modal-content input { margin: 15px 0; border: 1px solid #00004d; }
         
-        /* Employee Full Profile Modal */
         .profile-content { width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; text-align: left; }
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 15px; }
         .profile-section-title { color: #D4AF37; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 15px; margin-bottom: 10px; }
         .profile-data strong { display: inline-block; width: 150px; color: #555; }
-        .img-preview { max-width: 100%; max-height: 150px; border-radius: 8px; border: 1px solid #ccc; object-fit: cover; }
         .face-id-badge { background: #28a745; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
@@ -153,14 +149,8 @@
 
         <div id="leave" class="section">
             <h2 class="title">ခွင့်တင်ရန်</h2>
-            <div class="form-group">
-                <label>ဝန်ထမ်းအမည်</label>
-                <select class="emp-dropdown" id="leave-emp"></select>
-            </div>
-            <div class="form-group">
-                <label>အကြောင်းအရာ</label>
-                <textarea id="leave-reason" rows="5" placeholder="ခွင့်ယူရသည့် အကြောင်းရင်းကို အသေးစိတ်ရေးသားပါ..."></textarea>
-            </div>
+            <div class="form-group"><label>ဝန်ထမ်းအမည်</label><select class="emp-dropdown" id="leave-emp"></select></div>
+            <div class="form-group"><label>အကြောင်းအရာ</label><textarea id="leave-reason" rows="5" placeholder="ခွင့်ယူရသည့် အကြောင်းရင်းကို အသေးစိတ်ရေးသားပါ..."></textarea></div>
             <div class="flex-btns">
                 <button class="btn btn-green" onclick="submitLeave()">ခွင့်တင်ရန်</button>
                 <button class="btn btn-red" onclick="showSection('dashboard')">ပယ်ဖျက်ရန်</button>
@@ -169,15 +159,11 @@
 
         <div id="attendance" class="section">
             <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန်</h2>
-            <div class="form-group">
-                <label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label>
-                <select class="emp-dropdown" id="att-emp"></select>
-            </div>
+            <div class="form-group"><label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label><select class="emp-dropdown" id="att-emp"></select></div>
             <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
                 <p><strong>သြဂုတ်လ ၂၀၂၆</strong> (စမ်းသပ်ပြသမှု)</p>
                 <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 14px;">
-                    <span style="color: #28a745;">■ အလုပ်တက်ရက်</span>
-                    <span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
+                    <span style="color: #28a745;">■ အလုပ်တက်ရက်</span><span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
                 </div>
                 <div class="calendar-grid">
                     <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
@@ -193,12 +179,12 @@
         
         <div id="register" class="section">
             <h2 class="title">ဝန်ထမ်းအသစ်စာရင်းသွင်းရန်</h2>
-            <p style="text-align:center; color:#ffcccc;">(မှတ်ချက် - အမည်၊ ရာထူး၊ မှတ်ပုံတင်၊ ဖုန်း နှင့် မွေးရာဇာတိများကို Database တွင် တိုက်ရိုက်သိမ်းဆည်းပါမည်)</p>
+            
             <h3 class="subtitle">ကိုယ်ရေးအချက်အလက်</h3>
             <div class="grid-2col">
                 <div class="form-group"><input type="text" id="reg-name" placeholder="အမည် (မဖြစ်မနေထည့်ရန်)"></div>
                 <div class="form-group"><input type="text" id="reg-othername" placeholder="အခြားအမည်"></div>
-                <div class="form-group"><input type="number" id="reg-age" placeholder="အသက်"></div>
+                <div class="form-group"><input type="text" id="reg-age" placeholder="အသက်"></div>
                 <div class="form-group"><input type="text" id="reg-dob" placeholder="မွေးသက္ကရာဇ် (DD/MM/YYYY)"></div>
                 <div class="form-group"><input type="text" id="reg-birthplace" placeholder="မွေးရာဇာတိ"></div>
                 <div class="form-group"><input type="text" id="reg-religion" placeholder="လူမျိုး / ဘာသာ"></div>
@@ -224,15 +210,6 @@
                 <div class="form-group"><input type="text" id="reg-s-address" placeholder="ဇနီး/ခင်ပွန်းနေရပ်လိပ်စာ"></div>
                 <div class="form-group"><input type="text" id="reg-s-phone" placeholder="ဇနီး/ခင်ပွန်းဖုန်းနံပါတ်"></div>
             </div>
-
-            <h3 class="subtitle">မှတ်ပုံတင်အချက်အလက် နှင့် Face ID</h3>
-            <div class="form-group" style="margin-top: 10px;">
-                <label>မှတ်ပုံတင် ဓာတ်ပုံ (ရှေ့ / နောက်)</label>
-                <div class="grid-2col">
-                    <input type="file" id="reg-id-front" accept="image/*">
-                    <input type="file" id="reg-id-back" accept="image/*">
-                </div>
-            </div>
             
             <button class="btn btn-blue" style="margin-top:20px;" onclick="registerEmployee()">Face ID မှတ်သားရန် & စာရင်းသွင်းမည်</button>
         </div>
@@ -242,12 +219,7 @@
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
-                        <tr>
-                            <th>ID / အမည်</th>
-                            <th>ရာထူး</th>
-                            <th>ဖုန်းနံပါတ်</th>
-                            <th>လုပ်ဆောင်ချက်</th>
-                        </tr>
+                        <tr><th>ID / အမည်</th><th>ရာထူး</th><th>ဖုန်းနံပါတ်</th><th>လုပ်ဆောင်ချက်</th></tr>
                     </thead>
                     <tbody id="emp-data-body"></tbody>
                 </table>
@@ -268,7 +240,6 @@
     </div>
 
     <script>
-        // Supabase API Settings
         const SUPABASE_URL = "https://vveqtipcnrzbpmjwzbpm.supabase.co/rest/v1";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2ZXF0aXBjbnJ6YnBtand6YnBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTUxODAsImV4cCI6MjEwMTY3MTE4MH0.ls0NUKwNWnTbqqTfm6jOZdoW1sszaCtdY34vwJpiyeA";
         const fetchHeaders = {
@@ -289,24 +260,27 @@
             setInterval(updateTime, 1000);
         };
 
-        // --- Supabase Data Fetching ---
         async function fetchEmployees() {
             try {
-                let res = await fetch(`${SUPABASE_URL}/employees?select=*`, { headers: fetchHeaders });
+                let res = await fetch(`${SUPABASE_URL}/employees?select=*&order=id.asc`, { headers: fetchHeaders });
                 let data = await res.json();
                 if(!data.error && Array.isArray(data)) {
                     registeredEmployees = data.map(emp => ({
                         id: emp.id.toString().padStart(2, '0'),
                         name: emp.emp_name,
+                        othername: emp.other_name || "-",
+                        age: emp.age || "-",
+                        dob: emp.dob || "-",
+                        birthplace: emp.birthplace || "-",
+                        religion: emp.religion || "-",
+                        nrc: emp.nrc || "-",
+                        edu: emp.education || "-",
                         position: emp.position,
                         phone: emp.phone || "-",
-                        nrc: emp.nrc || "-",
-                        birthplace: emp.birthplace || "-",
-                        // Basic defaults for non-database fields in UI demo
-                        othername: "-", age: "-", dob: "-", religion: "-", edu: "-", address: "-",
-                        parents: { name: "-", job: "-", address: "-", phone: "-" },
-                        spouse: { name: "-", job: "-", address: "-", phone: "-" },
-                        images: { front: "", back: "" }, hasFaceID: false
+                        address: emp.address || "-",
+                        parents: { name: emp.parent_name || "-", job: emp.parent_job || "-", address: emp.parent_address || "-", phone: emp.parent_phone || "-" },
+                        spouse: { name: emp.spouse_name || "-", job: emp.spouse_job || "-", address: emp.spouse_address || "-", phone: emp.spouse_phone || "-" },
+                        hasFaceID: true
                     }));
                     updateDropdowns();
                 }
@@ -318,52 +292,46 @@
                 let res = await fetch(`${SUPABASE_URL}/attendance_logs?select=*&order=created_at.desc`, { headers: fetchHeaders });
                 let data = await res.json();
                 if(!data.error && Array.isArray(data)) {
-                    attendanceLogs = data.map(log => ({
-                        name: log.emp_name,
-                        type: log.log_type,
-                        date: log.log_date,
-                        time: log.log_time
-                    }));
+                    attendanceLogs = data.map(log => ({ name: log.emp_name, type: log.log_type, date: log.log_date, time: log.log_time }));
                 }
             } catch(e) { console.error("Error fetching attendance:", e); }
         }
 
-        // --- Action Logic ---
         async function registerEmployee() {
-            let name = document.getElementById('reg-name').value;
-            let position = document.getElementById('reg-position').value;
-            let nrc = document.getElementById('reg-nrc').value;
-            let phone = document.getElementById('reg-phone').value;
-            let birthplace = document.getElementById('reg-birthplace').value;
-            
-            if(!name || !position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
-            
             let payload = {
-                emp_name: name,
-                position: position,
-                nrc: nrc,
-                phone: phone,
-                birthplace: birthplace
+                emp_name: document.getElementById('reg-name').value,
+                other_name: document.getElementById('reg-othername').value,
+                age: document.getElementById('reg-age').value,
+                dob: document.getElementById('reg-dob').value,
+                birthplace: document.getElementById('reg-birthplace').value,
+                religion: document.getElementById('reg-religion').value,
+                nrc: document.getElementById('reg-nrc').value,
+                education: document.getElementById('reg-edu').value,
+                position: document.getElementById('reg-position').value,
+                phone: document.getElementById('reg-phone').value,
+                address: document.getElementById('reg-address').value,
+                parent_name: document.getElementById('reg-p-name').value,
+                parent_job: document.getElementById('reg-p-job').value,
+                parent_address: document.getElementById('reg-p-address').value,
+                parent_phone: document.getElementById('reg-p-phone').value,
+                spouse_name: document.getElementById('reg-s-name').value,
+                spouse_job: document.getElementById('reg-s-job').value,
+                spouse_address: document.getElementById('reg-s-address').value,
+                spouse_phone: document.getElementById('reg-s-phone').value
             };
 
+            if(!payload.emp_name || !payload.position) { alert("အမည် နှင့် ရာထူး ကို မဖြစ်မနေ ဖြည့်စွက်ပေးပါ။"); return; }
+            
             try {
-                let res = await fetch(`${SUPABASE_URL}/employees`, {
-                    method: 'POST',
-                    headers: fetchHeaders,
-                    body: JSON.stringify(payload)
-                });
+                let res = await fetch(`${SUPABASE_URL}/employees`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                 let data = await res.json();
                 if(!data.error) {
-                    alert(`ဝန်ထမ်းအမည် ${name} ကို Database သို့ အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
+                    alert(`ဝန်ထမ်းအမည် ${payload.emp_name} ကို Database သို့ အောင်မြင်စွာ စာရင်းသွင်းပြီးပါပြီ။`);
                     document.querySelectorAll('#register input').forEach(input => input.value = '');
-                    await fetchEmployees(); // Refresh data
+                    await fetchEmployees(); 
                     showSection('dashboard');
-                } else {
-                    alert("Database Error: " + data.error.message);
-                }
-            } catch(e) {
-                alert("Network Error ဖြစ်နေပါသည်။");
-            }
+                } else { alert("Database Error: " + data.error.message); }
+            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
         }
 
         async function submitData(action) {
@@ -373,33 +341,20 @@
 
             if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
 
-            let payload = {
-                emp_name: empName,
-                log_type: action,
-                log_date: dateVal,
-                log_time: timeVal
-            };
-
+            let payload = { emp_name: empName, log_type: action, log_date: dateVal, log_time: timeVal };
             try {
-                let res = await fetch(`${SUPABASE_URL}/attendance_logs`, {
-                    method: 'POST',
-                    headers: fetchHeaders,
-                    body: JSON.stringify(payload)
-                });
+                let res = await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
                 let data = await res.json();
                 if(!data.error) {
                     alert(`${empName} ၏ ${action} မှတ်တမ်းကို Database သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
                     if(action === 'Check In') document.getElementById('ci-emp').selectedIndex = 0;
                     if(action === 'Check Out') document.getElementById('co-emp').selectedIndex = 0;
-                    await fetchAttendance(); // Refresh data
+                    await fetchAttendance(); 
                     showSection('dashboard'); 
                 }
-            } catch(e) {
-                alert("Network Error ဖြစ်နေပါသည်။");
-            }
+            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
         }
 
-        // --- UI Logic ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('nav a').forEach(nav => nav.classList.remove('active'));
@@ -416,9 +371,7 @@
             document.getElementById('admin-pass-input').focus();
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
         function verifyAdmin() {
             if (document.getElementById('admin-pass-input').value === "HR2026") {
@@ -426,10 +379,7 @@
                 showSection(targetAdminSection);
                 if(targetAdminSection === 'admin-panel') renderAdminTable(); 
                 if(targetAdminSection === 'employee-data') renderEmployeeTable();
-            } else {
-                alert("စကားဝှက် မှားယွင်းနေပါသည်။");
-                document.getElementById('admin-pass-input').value = '';
-            }
+            } else { alert("စကားဝှက် မှားယွင်းနေပါသည်။"); document.getElementById('admin-pass-input').value = ''; }
         }
 
         function updateTime() {
@@ -450,8 +400,7 @@
             if(!empName) { alert("ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
             if(!reason) { alert("ခွင့်ယူရသည့် အကြောင်းရင်းကို ရေးသားပါ။"); return; }
             alert(`${empName} ၏ ခွင့်တောင်းခံလွှာကို အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ။`);
-            document.getElementById('leave-emp').selectedIndex = 0;
-            document.getElementById('leave-reason').value = '';
+            document.getElementById('leave-emp').selectedIndex = 0; document.getElementById('leave-reason').value = '';
             showSection('dashboard');
         }
 
@@ -467,17 +416,9 @@
         function renderEmployeeTable() {
             const tableBody = document.getElementById('emp-data-body');
             tableBody.innerHTML = ""; 
-            if(registeredEmployees.length === 0) {
-                tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ဝန်ထမ်းအချက်အလက် မရှိသေးပါ။</td></tr>";
-                return;
-            }
+            if(registeredEmployees.length === 0) { tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ဝန်ထမ်းအချက်အလက် မရှိသေးပါ။</td></tr>"; return; }
             registeredEmployees.forEach((emp, index) => {
-                tableBody.innerHTML += `<tr>
-                    <td>ID:${emp.id} - ${emp.name}</td>
-                    <td>${emp.position}</td>
-                    <td>${emp.phone}</td>
-                    <td><button class="btn btn-blue btn-small" onclick="viewProfile(${index})">အပြည့်အစုံကြည့်ရန်</button></td>
-                </tr>`;
+                tableBody.innerHTML += `<tr><td>ID:${emp.id} - ${emp.name}</td><td>${emp.position}</td><td>${emp.phone}</td><td><button class="btn btn-blue btn-small" onclick="viewProfile(${index})">အပြည့်အစုံကြည့်ရန်</button></td></tr>`;
             });
         }
 
@@ -488,13 +429,23 @@
                 <div class="profile-data">
                     <h3 class="profile-section-title">ကိုယ်ရေးအချက်အလက်</h3>
                     <div class="profile-grid">
-                        <div><strong>အမည်:</strong> ${emp.name}</div>
-                        <div><strong>ရာထူး:</strong> ${emp.position}</div>
-                        <div><strong>မှတ်ပုံတင်အမှတ်:</strong> ${emp.nrc}</div>
-                        <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.phone}</div>
-                        <div style="grid-column: span 2;"><strong>မွေးရာဇာတိ:</strong> ${emp.birthplace}</div>
+                        <div><strong>အမည်:</strong> ${emp.name}</div><div><strong>အခြားအမည်:</strong> ${emp.othername}</div>
+                        <div><strong>အသက်:</strong> ${emp.age}</div><div><strong>မွေးသက္ကရာဇ်:</strong> ${emp.dob}</div>
+                        <div><strong>လူမျိုး / ဘာသာ:</strong> ${emp.religion}</div><div><strong>မှတ်ပုံတင်အမှတ်:</strong> ${emp.nrc}</div>
+                        <div><strong>ပညာအရည်အချင်း:</strong> ${emp.edu}</div><div><strong>ရာထူး:</strong> ${emp.position}</div>
+                        <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.phone}</div><div><strong>မွေးရာဇာတိ:</strong> ${emp.birthplace}</div>
+                        <div style="grid-column: span 2;"><strong>လက်ရှိနေရပ်လိပ်စာ:</strong> ${emp.address}</div>
                     </div>
-                    <p style="color:#666; font-size:13px;">(အခြားအချက်အလက်များ လောလောဆယ် Database တွင် မချိတ်ဆက်ထားပါ)</p>
+                    <h3 class="profile-section-title">မိဘအချက်အလက်</h3>
+                    <div class="profile-grid">
+                        <div><strong>အမည်:</strong> ${emp.parents.name}</div><div><strong>အလုပ်အကိုင်:</strong> ${emp.parents.job}</div>
+                        <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.parents.phone}</div><div style="grid-column: span 2;"><strong>နေရပ်လိပ်စာ:</strong> ${emp.parents.address}</div>
+                    </div>
+                    <h3 class="profile-section-title">ဇနီး/ခင်ပွန်းအချက်အလက်</h3>
+                    <div class="profile-grid">
+                        <div><strong>အမည်:</strong> ${emp.spouse.name}</div><div><strong>အလုပ်အကိုင်:</strong> ${emp.spouse.job}</div>
+                        <div><strong>ဖုန်းနံပါတ်:</strong> ${emp.spouse.phone}</div><div style="grid-column: span 2;"><strong>နေရပ်လိပ်စာ:</strong> ${emp.spouse.address}</div>
+                    </div>
                 </div>
             `;
             document.getElementById('profile-body').innerHTML = html;
