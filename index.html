@@ -264,12 +264,37 @@
         let registeredEmployees = [];
         let targetAdminSection = "";
 
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Error', err));
+            });
+        }
+
         window.onload = async function() { 
-            await fetchEmployees();
-            await fetchAttendance();
-            document.getElementById('loading-status').innerText = "(Database ချိတ်ဆက်မှု အောင်မြင်ပါသည်)";
+            if(navigator.onLine) {
+                await fetchEmployees();
+                await fetchAttendance();
+                document.getElementById('loading-status').innerText = "(Database ချိတ်ဆက်မှု အောင်မြင်ပါသည်)";
+                syncOfflineData(); 
+            } else {
+                document.getElementById('loading-status').innerText = "(Offline ဖြစ်နေပါသည်။ Data များကို ယာယီသိမ်းဆည်းထားပါမည်)";
+                loadOfflineData();
+            }
             setInterval(updateTime, 1000);
         };
+
+        window.addEventListener('online', async () => {
+            document.getElementById('loading-status').innerText = "(အင်တာနက် ပြန်လည်ရရှိပါပြီ။ Database သို့ ချိတ်ဆက်နေပါသည်...)";
+            await fetchEmployees();
+            await fetchAttendance();
+            syncOfflineData();
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('loading-status').innerText = "(Offline ဖြစ်နေပါသည်။ Data များကို ယာယီသိမ်းဆည်းထားပါမည်)";
+        });
 
         async function fetchEmployees() {
             try {
@@ -295,8 +320,9 @@
                         hasFaceID: true
                     }));
                     updateDropdowns();
+                    localStorage.setItem('cached_employees', JSON.stringify(registeredEmployees));
                 }
-            } catch(e) { console.error("Error fetching employees:", e); }
+            } catch(e) { console.log("Offline mode - using cached employees"); }
         }
 
         async function fetchAttendance() {
@@ -305,8 +331,30 @@
                 let data = await res.json();
                 if(!data.error && Array.isArray(data)) {
                     attendanceLogs = data.map(log => ({ name: log.emp_name, type: log.log_type, date: log.log_date, time: log.log_time }));
+                    localStorage.setItem('cached_attendance', JSON.stringify(attendanceLogs));
                 }
-            } catch(e) { console.error("Error fetching attendance:", e); }
+            } catch(e) { console.log("Offline mode - using cached attendance"); }
+        }
+
+        function loadOfflineData() {
+            let cachedEmp = localStorage.getItem('cached_employees');
+            if(cachedEmp) { registeredEmployees = JSON.parse(cachedEmp); updateDropdowns(); }
+            let cachedAtt = localStorage.getItem('cached_attendance');
+            if(cachedAtt) { attendanceLogs = JSON.parse(cachedAtt); }
+        }
+
+        async function syncOfflineData() {
+            let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
+            if(offlineLogs.length > 0) {
+                for(let payload of offlineLogs) {
+                    try {
+                        await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
+                    } catch(e) { console.error("Sync failed for", payload); return; } 
+                }
+                localStorage.removeItem('offline_attendance');
+                alert("Offline တွင် ဖြည့်သွင်းထားသော မှတ်တမ်းများကို Database သို့ အောင်မြင်စွာ ပေးပို့ပြီးပါပြီ။");
+                await fetchAttendance();
+            }
         }
 
         async function uploadImage(file, prefix) {
@@ -338,6 +386,7 @@
         }
 
         async function registerEmployee() {
+            if(!navigator.onLine) { alert("ဝန်ထမ်းအသစ် စာရင်းသွင်းရန် အင်တာနက် လိုအပ်ပါသည်။"); return; }
             let name = document.getElementById('reg-name').value;
             let position = document.getElementById('reg-position').value;
             
@@ -400,17 +449,30 @@
             if(!empName) { alert("ကျေးဇူးပြု၍ ဝန်ထမ်းအမည်ကို ရွေးချယ်ပါ။"); return; }
 
             let payload = { emp_name: empName, log_type: action, log_date: dateVal, log_time: timeVal };
-            try {
-                let res = await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
-                let data = await res.json();
-                if(!data.error) {
-                    alert(`${empName} ၏ ${action} မှတ်တမ်းကို Database သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
-                    if(action === 'Check In') document.getElementById('ci-emp').selectedIndex = 0;
-                    if(action === 'Check Out') document.getElementById('co-emp').selectedIndex = 0;
-                    await fetchAttendance(); 
-                    showSection('dashboard'); 
-                }
-            } catch(e) { alert("Network Error ဖြစ်နေပါသည်။"); }
+            
+            if(navigator.onLine) {
+                try {
+                    let res = await fetch(`${SUPABASE_URL}/attendance_logs`, { method: 'POST', headers: fetchHeaders, body: JSON.stringify(payload) });
+                    let data = await res.json();
+                    if(!data.error) {
+                        alert(`${empName} ၏ ${action} မှတ်တမ်းကို Database သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။`);
+                        await fetchAttendance(); 
+                    }
+                } catch(e) { saveOfflineAttendance(payload, empName, action); }
+            } else {
+                saveOfflineAttendance(payload, empName, action);
+            }
+            
+            if(action === 'Check In') document.getElementById('ci-emp').selectedIndex = 0;
+            if(action === 'Check Out') document.getElementById('co-emp').selectedIndex = 0;
+            showSection('dashboard'); 
+        }
+
+        function saveOfflineAttendance(payload, empName, action) {
+            let offlineLogs = JSON.parse(localStorage.getItem('offline_attendance') || '[]');
+            offlineLogs.push(payload);
+            localStorage.setItem('offline_attendance', JSON.stringify(offlineLogs));
+            alert(`[Offline Mode] အင်တာနက်မရှိသဖြင့် ${empName} ၏ ${action} ကို Device ထဲတွင် ယာယီမှတ်သားထားပါသည်။ အင်တာနက်ရချိန်တွင် Database သို့ အလိုအလျောက် ပေးပို့ပါမည်။`);
         }
 
         function showSection(id) {
