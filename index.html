@@ -172,20 +172,17 @@
 
         <div id="attendance" class="section">
             <h2 class="title">မိမိ၏လစဥ်အလုပ်တက်ရောက်မှုကြည့်ရှုရန်</h2>
-            <div class="form-group"><label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label><select class="emp-dropdown" id="att-emp"></select></div>
+            <div class="form-group">
+                <label>ဝန်ထမ်းအမည် ရွေးချယ်ပါ</label>
+                <select class="emp-dropdown" id="att-emp" onchange="renderCalendar()"></select>
+            </div>
             <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
-                <p><strong>သြဂုတ်လ ၂၀၂၆</strong> (စမ်းသပ်ပြသမှု)</p>
+                <p><strong id="cal-month-title">လစဥ်ပြက္ခဒိန်</strong></p>
                 <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; font-size: 14px;">
                     <span style="color: #28a745;">■ အလုပ်တက်ရက်</span><span style="color: #dc3545;">■ ပျက်ရက် / ခွင့်</span>
                 </div>
-                <div class="calendar-grid">
-                    <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
-                    <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day">1</div><div class="cal-day">2</div>
-                    <div class="cal-day cal-present">3</div><div class="cal-day cal-present">4</div><div class="cal-day cal-present">5</div><div class="cal-day cal-present">6</div><div class="cal-day cal-present">7</div><div class="cal-day cal-present">8</div><div class="cal-day">9</div>
-                    <div class="cal-day cal-present">10</div><div class="cal-day cal-present">11</div><div class="cal-day cal-absent">12</div><div class="cal-day cal-present">13</div><div class="cal-day cal-present">14</div><div class="cal-day cal-present">15</div><div class="cal-day">16</div>
-                    <div class="cal-day cal-present">17</div><div class="cal-day cal-present">18</div><div class="cal-day cal-present">19</div><div class="cal-day cal-present">20</div><div class="cal-day cal-present">21</div><div class="cal-day cal-present">22</div><div class="cal-day">23</div>
-                    <div class="cal-day cal-present">24</div><div class="cal-day cal-present">25</div><div class="cal-day cal-present">26</div><div class="cal-day cal-present">27</div><div class="cal-day cal-present">28</div><div class="cal-day cal-present">29</div><div class="cal-day">30</div>
-                    <div class="cal-day cal-present">31</div>
+                <div class="calendar-grid" id="dynamic-calendar">
+                    <!-- Dynamic Calendar will be loaded here -->
                 </div>
             </div>
         </div>
@@ -644,6 +641,61 @@
                 let color = log.type === 'Check In' ? '#28a745' : '#dc3545';
                 tableBody.innerHTML += `<tr><td>${log.name}</td><td style="color: ${color}; font-weight: bold;">${log.type}</td><td>${log.date}</td><td>${log.time}</td></tr>`;
             });
+        }
+        function renderCalendar() {
+            const empName = document.getElementById('att-emp').value;
+            const grid = document.getElementById('dynamic-calendar');
+            const title = document.getElementById('cal-month-title');
+            
+            if(!empName) {
+                grid.innerHTML = "";
+                title.innerText = "လစဥ်ပြက္ခဒိန်";
+                return;
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); 
+            
+            const monthNames = ["ဇန်နဝါရီ", "ဖေဖော်ဝါရီ", "မတ်", "ဧပြီ", "မေ", "ဇွန်", "ဇူလိုင်", "သြဂုတ်", "စက်တင်ဘာ", "အောက်တိုဘာ", "နိုဝင်ဘာ", "ဒီဇင်ဘာ"];
+            title.innerText = `${monthNames[month]}လ ${year} - ${empName} ၏ မှတ်တမ်း`;
+
+            // Database မှ လက်ရှိလအတွက် Check In ရက်များကို ရှာဖွေခြင်း
+            let attendedDays = new Set();
+            attendanceLogs.forEach(log => {
+                if(log.name === empName && log.type === 'Check In') {
+                    let parts = log.date.split('-'); 
+                    if(parts.length === 3) {
+                        let logY = parseInt(parts[0]);
+                        let logM = parseInt(parts[1]) - 1; 
+                        let logD = parseInt(parts[2]);
+                        if(logY === year && logM === month) {
+                            attendedDays.add(logD);
+                        }
+                    }
+                }
+            });
+
+            const firstDay = new Date(year, month, 1).getDay(); 
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = now.getDate();
+
+            let html = `<div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>`;
+            
+            for(let i=0; i<firstDay; i++) {
+                html += `<div class="cal-day" style="border:none; background:transparent;"></div>`;
+            }
+            
+            for(let d=1; d<=daysInMonth; d++) {
+                let statusClass = "";
+                if(attendedDays.has(d)) {
+                    statusClass = "cal-present"; // အလုပ်တက်လျှင် အစိမ်း
+                } else if (d <= today) {
+                    statusClass = "cal-absent"; // ရက်ကျော်သွားပြီး အလုပ်မတက်လျှင် အနီ
+                }
+                html += `<div class="cal-day ${statusClass}">${d}</div>`;
+            }
+            grid.innerHTML = html;
         }
     </script>
 </body>
